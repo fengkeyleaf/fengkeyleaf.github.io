@@ -226,7 +226,7 @@ export default class Animator {
         this.scene = new THREE.Scene();
 
         // create a cube with len 60
-        const LEN = 30;
+        const LEN = 5;
         let cube = new THREE.BoxGeometry( LEN, LEN, LEN );
 
         // set up material
