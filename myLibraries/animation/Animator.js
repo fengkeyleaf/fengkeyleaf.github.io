@@ -254,7 +254,7 @@ export default class Animator {
         const WIDTH = window.innerWidth;
         const HEIGHT = window.innerHeight;
         const K = WIDTH / HEIGHT;
-        const S = 200;
+        const S = 38;
 
         // set up Orthographic Camera
         this.camera = new THREE.OrthographicCamera( -S * K, S * K, S, -S, 1, 1000 );
