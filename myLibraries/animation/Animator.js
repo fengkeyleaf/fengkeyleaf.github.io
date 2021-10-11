@@ -146,8 +146,8 @@ export default class Animator {
         this.us = 0.38 // sliding fraction, Dry wood on wood
         // this.us = 0.78 // sliding fraction, Dry steel on steel
         this.g = 9.80665; // N/kg
-        // this.e = 0.8; // 0 <= e <= 1
-        this.e = 0.2; // 0 <= e <= 1
+        this.e = 0.8; // 0 <= e <= 1
+//         this.e = 0.2; // 0 <= e <= 1
         this.impulseStriking = new THREE.Vector3( 200, 0, 0 ); // kg * m / s ^ 2
         this.isInit = true;
 
