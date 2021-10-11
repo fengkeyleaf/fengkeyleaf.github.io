@@ -11,7 +11,6 @@
  *     $1.1 added min(), max(), minMax() on 8/20/2021$
  */
 
-
 /**
  * This class consists exclusively of static methods
  * that related to comparing elements

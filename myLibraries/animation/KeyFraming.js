@@ -1,6 +1,23 @@
 "use strict"
 
+/*
+ * KeyFraming.js
+ *
+ * Version:
+ *     $1.0$
+ *
+ * Revisions:
+ *     $1.0 mapTtoU(), LinearInterpolation(), slerp() on 9/21/2021$
+ */
+
 import MyMath from "../lang/MyMath.js";
+
+/**
+ * This class consists exclusively of static methods
+ * that related to KeyFraming
+ *
+ * @author       Xiaoyu Tongyang, or call me sora for short
+ */
 
 export default class KeyFraming {
 

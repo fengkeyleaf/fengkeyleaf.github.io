@@ -4,40 +4,62 @@ import DCEL from "../../util/geometry/DCEL/DCEL.js";
 import MyMath from "../../lang/MyMath.js";
 import SnapShot from "./SnapShot.js";
 import Main from "../../../finalProject/JavaScript/Main.js";
+import Vector from "../../util/geometry/elements/point/Vector.js";
+import Vertex from "../../util/geometry/DCEL/Vertex.js";
 
 export default class Drawer {
+    static black = [ 0.0, 0.0, 0.0, 1.0 ];
+    static grey = [ 0.7, 0.7, 0.7, 1 ];
+    static aqua = [ 0, 1, 1, 1 ];
+    static DeepSkyBlue = [ 0, 191 / 255, 1, 1 ];
+
+    /**
+     *
+     * @param {Vector} vertex1
+     * @param {Vector} vertex2
+     */
 
     static addDrawingPoints( vertex1, vertex2 ) {
         let snapshot = new SnapShot();
-        snapshot.addAll( Main.main.snapshots[ Main.main.snapshots.length - 1 ].current );
+        snapshot.addAll( Main.main.snapshots[ Main.main.snapshots.length - 1 ] );
         // snapshot.add( Main.main.drawer.polygonsPoints );
-        snapshot.add( new Float32Array( Drawer.drawLines( vertex1, vertex2 ) ) );
+        let { points, colors } = Drawer.drawLines( vertex1, vertex2 );
+        // console.log( points, colors )
+        snapshot.add( new Float32Array( points ), new Float32Array( colors ) );
         Main.main.snapshots.push( snapshot );
     }
 
-    static addPointByVertex( points, vertex, exponent ) {
-        console.assert( exponent, exponent );
-        let x = vertex.x / Math.pow( 10, exponent );
-        let y = vertex.y / Math.pow( 10, exponent );
+    /**
+     * @param {[Number]} points
+     * @param {Vertex} vertex
+     */
+
+    static addPointByVertex( points, vertex ) {
+        // normalized coordinates, mapped to [ -1, 1 ]
+        // coor * window / origin, window = 1
+        let x = vertex.x / Main.main.originalWidth;
+        let y = vertex.y / Main.main.originalHeight;
         points.push( x );
         points.push( y );
     }
 
-    // TODO not correct for normalized(), the shape would be smaller in some cases
+    /**
+     * @param {[HalfEdge]} edges
+     */
+
     static getPolygonsPointsByEdges( edges ) {
         console.assert( edges.length > 2 );
         let points = [];
-        edges.forEach( edge => {
-            points.push( edge.origin.x, edge.origin.y );
-        } );
+        let colors = [];
+        const black = [ 0.0, 0.0, 0.0, 1.0 ];
 
-        const EXP = MyMath.findMaxDigits( points );
-        points = [];
         edges.forEach( edge => {
-            Drawer.addPointByVertex( points, edge.origin, EXP );
+            Drawer.addPointByVertex( points, edge.origin );
+            colors = colors.concat( black );
         } );
-        Drawer.addPointByVertex( points, edges[ 0 ].origin, EXP );
-        return points;
+        Drawer.addPointByVertex( points, edges[ 0 ].origin );
+        colors = colors.concat( black );
+        return { points, colors };
     }
 
     // TODO not fixed
@@ -49,30 +71,37 @@ export default class Drawer {
         } );
         Drawer.addPointByVertex( points, vertices[ 0 ] );
         return points;
-    }
+    };
 
     static drawPolygons( faces ) {
         let points = [];
+        let colors = [];
+
         for ( let face of faces ) {
             if ( face.outComponent == null ) continue;
 
             let edges = DCEL.walkAroundEdgeFace( face );
-            points = points.concat( Drawer.getPolygonsPointsByEdges( edges ) );
+            let data = Drawer.getPolygonsPointsByEdges( edges );
+            points = points.concat( data.points );
+            colors = colors.concat( data.colors );
         }
 
-        return points;
+        return { points, colors };
     }
 
+    /**
+     * @param {Vector} vertices
+     */
+
     static drawLines( ...vertices ) {
-        // debugger
         let points = [];
+        let colors = [];
+        const grey = [ 0.7, 0.7, 0.7, 1 ];
         vertices.forEach( vertex => {
-            points.push( vertex.x, vertex.y );
+            Drawer.addPointByVertex( points, vertex );
+            colors = colors.concat( grey );
         } );
 
-        const EXP = MyMath.findMaxDigits( points );
-        points = [];
-        vertices.forEach( vertex => Drawer.addPointByVertex( points, vertex, EXP ) );
-        return points;
+        return { points, colors };
     }
 }

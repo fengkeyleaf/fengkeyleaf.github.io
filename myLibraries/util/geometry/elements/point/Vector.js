@@ -31,8 +31,9 @@ export default class Vector extends Node {
     /**
      * Constructs to create an instance of Vector
      *
-     * @param x double
-     * @param y double
+     * @param {Number} x
+     * @param {Number} y
+     * @param {Number} ID
      * */
 
     constructor( x, y, ID ) {
@@ -45,6 +46,9 @@ export default class Vector extends Node {
 
     /**
      * set X And Y
+     *
+     * @param {Number} x
+     * @param {Number} y
      * */
 
     setXAndY( x, y ) {
@@ -54,6 +58,8 @@ export default class Vector extends Node {
 
     /**
      * vector addition
+     *
+     * @param {Vector} vector
      * */
 
     add( vector ) {
@@ -62,6 +68,8 @@ export default class Vector extends Node {
 
     /**
      * vector subtract
+     *
+     * @param {Vector} vector
      * */
 
     subtract( vector ) {
@@ -70,6 +78,8 @@ export default class Vector extends Node {
 
     /**
      * vector multiplication
+     *
+     * @param {number} ratio
      * */
 
     multiply( ratio ) {
@@ -78,6 +88,8 @@ export default class Vector extends Node {
 
     /**
      * vector division
+     *
+     * @param {number} ratio
      * */
 
     division( ratio ) {
@@ -107,6 +119,8 @@ export default class Vector extends Node {
 
     /**
      * Are x and y of this vector and the vector same?
+     *
+     * @param {Vector} vector
      * */
 
     equalsXAndY( vector ) {
@@ -114,11 +128,15 @@ export default class Vector extends Node {
         return this.__equalsXAndY( vector.x, vector.y );
     }
 
+    /**
+     * @param {Object} o
+     * */
+
     equals( o ) {
-    if ( this === o ) return true;
-    if ( o == null || !( this instanceof Vector ) ) return false;
-    return this.equalsXAndY( o );
-}
+        if ( this === o ) return true;
+        if ( o == null || !( this instanceof Vector ) ) return false;
+        return this.equalsXAndY( o );
+    }
 
     toStringNormalWithoutID() {
         return this.x + "|" + this.y;

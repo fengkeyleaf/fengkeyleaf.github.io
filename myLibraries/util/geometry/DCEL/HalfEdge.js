@@ -15,6 +15,7 @@ import DCEL from "./DCEL.js";
 import Face from "./Face.js";
 import CompareElement from "../../CompareElement.js";
 import Drawer from "../../../GUI/geometry/Drawer.js";
+import Main from "../../../../finalProject/JavaScript/Main.js";
 
 /**
  * Data structure of halfEdge for DCEL
@@ -44,6 +45,9 @@ export default class HalfEdge {
 
     /**
      * sort by Y
+     *
+     * @param {HalfEdge} edge1
+     * @param {HalfEdge} edge2
      * */
 
     static sort( edge1, edge2 ) {
@@ -64,6 +68,9 @@ export default class HalfEdge {
 
     /**
      * set twins for two twin half edges
+     *
+     * @param {HalfEdge} first
+     * @param {HalfEdge} second
      * */
 
     static setTwins( first, second ) {
@@ -73,6 +80,9 @@ export default class HalfEdge {
 
     /**
      * left is already connected to right?
+     *
+     * @param {Vertex} left
+     * @param {Vertex} right
      * */
 
     static isAlreadyConnected( left, right ) {
@@ -90,11 +100,17 @@ export default class HalfEdge {
     /**
      * connect a split or merge vertex to a helper,
      * and add an internal diagonal.
+     *
+     * @param {Vertex} left
+     * @param {Vertex} right
+     * @param {[Face]} faces
      * */
 
     static connectHelper( left, right, faces ) {
         if ( this.isAlreadyConnected( left, right ) ) return;
-        Drawer.addDrawingPoints( left, right );
+        let { points, colors } = Drawer.drawLines( left, right );
+        Main.main.snapshots.getLast().addDiagonals( new Float32Array(points), new Float32Array( colors ) );
+        // Drawer.addDrawingPoints( left, right );
 
         // create two new halfEdges,
         // newer and older,
@@ -136,7 +152,10 @@ export default class HalfEdge {
     /**
      * are both vertices of the two halfEdges
      * on the same monotone chain?
+     *
+     * @param {HalfEdge} edge
      * */
+
     isOnTheDifferentChain( edge ) {
         return this.origin.isOnTheDifferentChain( edge.origin );
     }

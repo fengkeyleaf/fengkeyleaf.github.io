@@ -23,6 +23,9 @@ import Stack from "../../Stack.js";
 import Polygons from "./Polygons.js";
 import StatusRBTree from "./StatusRBTree.js";
 import Vertex from "../DCEL/Vertex.js";
+import Drawer from "../../../GUI/geometry/Drawer.js";
+import SnapShot from "../../../GUI/geometry/SnapShot.js";
+import Main from "../../../../finalProject/JavaScript/Main.js";
 
 /**
  * This class consists exclusively of static methods
@@ -112,7 +115,7 @@ export default class MonotonePolygons {
      * @param {HalfEdge} edge
      */
 
-    static getVertexType( edge ) {
+    static __getVertexType( edge ) {
         let base = edge.origin;
         let next = edge.next.origin;
         let prev = edge.prev.origin;
@@ -176,12 +179,12 @@ export default class MonotonePolygons {
      * @param {Face} face
      */
 
-    static getVertexTypeEntry( face ) {
+    static getVertexType( face ) {
         if ( face == null ) return;
 
         let edge = face.outComponent;
         do {
-            this.getVertexType( edge );
+            this.__getVertexType( edge );
             edge = edge.next;
         } while ( edge !== face.outComponent );
     }
@@ -320,7 +323,7 @@ export default class MonotonePolygons {
      * Reference resource:
      * @see <a href=http://www.cs.uu.nl/geobook/>portal gate</a>
      *
-     * @param {[Vertex]} vertices
+     * @param {[MonotoneVertex]} vertices
      * @return faces newly partitioned faces (Monotone polygons) by adding internal diagonals
      */
 
@@ -343,6 +346,10 @@ export default class MonotonePolygons {
         for ( let i = priorityQueue.length - 1; i >= 0; i-- ) {
             // 	do Remove the vertex vi with the highest priority from Q.
             let vertex = priorityQueue[ i ];
+
+            // add a snapshot for this vertex in partitioning monotone polygons
+            SnapShot.addSnapshot( vertex );
+
             // 	Call the appropriate procedure to handle the vertex, depending on its type.
             switch ( vertex.vertexType ) {
                 case MonotoneVertex.VertexType.START:
@@ -381,7 +388,7 @@ export default class MonotonePolygons {
 
     // Input. A strictly y-monotone polygon P stored in a doubly-connected edge list D.
     // Output. A triangulation of P stored in the doubly-connected edge list D.
-    static triangulationMonotonePolygon( monotonePolygon ) {
+    static triangulateMonotonePolygon( monotonePolygon ) {
         const faces = [];
         if ( monotonePolygon == null ) return faces;
 
@@ -393,14 +400,20 @@ export default class MonotonePolygons {
         sortedEdges.sort( HalfEdge.sort );
         let len = sortedEdges.length;
         // Initialize an empty stack S, and push u1 and u2 onto it.
+        // and add the first two snapshots
         let stack = new Stack();
         stack.push( sortedEdges[ len - 1 ] );
+        SnapShot.addSnapshot( stack.peek().origin ).addStack( stack.array );
         stack.push( sortedEdges[ len - 2 ] );
+        SnapShot.addSnapshot( stack.peek().origin ).addStack( stack.array );
 
         // for j←3 to n−1
         let edge = null;
         for ( let i = len - 3; i > 0; i-- ) {
             edge = sortedEdges[ i ];
+            // add snapshot for this vertex
+            let snapshot = SnapShot.addSnapshot( edge.origin );
+
             // 	do if uj and the vertex on top of S are on different chains
             if ( edge.isOnTheDifferentChain( stack.peek() ) ) {
                 // then Pop all vertices from S.
@@ -451,6 +464,8 @@ export default class MonotonePolygons {
                 // Push uj onto S.
                 stack.push( edge );
             }
+
+            snapshot.addStack( stack.array );
         }
 
         // Add diagonals from un to all stack vertices
@@ -461,6 +476,8 @@ export default class MonotonePolygons {
             HalfEdge.connectHelper( edge.origin,
                 stack.pop().origin, faces );
         }
+        // add last snapshot for the last vertex
+        SnapShot.addSnapshot( edge.origin ).addStack( stack.array ).isEndOfThisMonotone = true;
 
         return faces;
     }
@@ -472,8 +489,8 @@ export default class MonotonePolygons {
      * @param {HalfEdge} bottommost
      */
 
-    static findLeftAndRightChainVerticesChain( topmost,
-                                               bottommost ) {
+    static __findLeftAndRightChainVertices( topmost,
+                                            bottommost ) {
         let edge = topmost;
         // vertices on the left chain, including the topmost
         do {
@@ -529,7 +546,7 @@ export default class MonotonePolygons {
         console.assert( topmost != null );
         console.assert( bottommost != null );
         console.assert( topmost !== bottommost );
-        this.findLeftAndRightChainVerticesChain( topmost, bottommost );
+        this.__findLeftAndRightChainVertices( topmost, bottommost );
     }
 
     /**
@@ -551,7 +568,7 @@ export default class MonotonePolygons {
             // and determine on which chain it is
             this.findLeftAndRightChainVertices( monotonePolygon );
             // and triangulate the polygon
-            triangles = triangles.concat( this.triangulationMonotonePolygon( monotonePolygon ) );
+            triangles = triangles.concat( this.triangulateMonotonePolygon( monotonePolygon ) );
         }
 
         return triangles;

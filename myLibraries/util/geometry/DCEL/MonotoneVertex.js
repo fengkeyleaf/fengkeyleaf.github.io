@@ -28,6 +28,9 @@ export default class MonotoneVertex extends Vertex {
     static LEFT_CHAIN_VERTEX = true;
     static RIGHT_CHAIN_VERTEX = false;
 
+    static LEFT_CHAIN_VERTEX_COLOR = [ 255 / 255, 0, 102 / 255, 1 ];
+    static RIGHT_CHAIN_VERTEX_COLOR = [ 0, 204 / 255, 255 / 255, 1 ];
+
     /**
      * enumerative Vertex Type for partitioning monotone subpolygons
      * */
@@ -40,6 +43,9 @@ export default class MonotoneVertex extends Vertex {
 
     /**
      * constructs to create an instance of MonotoneVertex
+     *
+     * @param {Number} x
+     * @param {Number} y
      * */
 
     constructor( x, y ) {
@@ -61,6 +67,8 @@ export default class MonotoneVertex extends Vertex {
 
     /**
      * are both vertices on the same monotone chain?
+     *
+     * @param {MonotoneVertex} vertex
      * */
 
     isOnTheDifferentChain( vertex ) {

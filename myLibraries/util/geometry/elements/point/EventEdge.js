@@ -41,6 +41,7 @@ export default class EventEdge extends Vector {
     /**
      * update Y And X with the shape in this EventEdge
      *
+     * @param {Vector} update
      * */
 
     updateYAndX( update ) {
@@ -50,6 +51,8 @@ export default class EventEdge extends Vector {
 
     /**
      * update Y with given X with the shape in this EventEdge
+     *
+     * @param {Number} x
      * */
 
     updateY( x ) {

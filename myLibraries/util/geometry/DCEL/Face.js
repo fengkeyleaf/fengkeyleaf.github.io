@@ -24,6 +24,8 @@ export default class Face {
 
     /**
      * constructs to create an instance of Vertex
+     *
+     * @param {HalfEdge} outComponent
      * */
 
     constructor( outComponent ) {
@@ -36,6 +38,10 @@ export default class Face {
     static resetIDStatic() {
         Face.IDStatic = 0;
     }
+
+    /**
+     * @param {HalfEdge} halfEdge
+     * */
 
     addInnerComponent( halfEdge ) {
         this.innerComponents.add( halfEdge );

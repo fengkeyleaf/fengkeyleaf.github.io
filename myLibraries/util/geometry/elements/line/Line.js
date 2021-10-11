@@ -26,6 +26,9 @@ export default class Line {
 
     /**
      * Constructs to create an instance of Line
+     *
+     * @param {Vector} startPoint
+     * @param {Vector} endPoint
      * */
 
     constructor( startPoint, endPoint ) {
@@ -55,6 +58,8 @@ export default class Line {
 
     /**
      * get projecting point of the point
+     *
+     * @param {Vector} point
      * */
 
     project( point ) {
@@ -66,6 +71,8 @@ export default class Line {
 
     /**
      * get the linear distance from the point
+     *
+     * @param {Vector} point
      * */
 
     distance( point ) {
@@ -99,7 +106,9 @@ export default class Line {
     /**
      * update Y And X, for line
      *
-     * @param isUpdatingByX     update x and y based which, x or y?
+     * @param {Vector} target
+     * @param {Vector} update
+     * @param {Boolean} isUpdatingByX     update x and y based which, x or y?
      *                          true -> x; false -> y
      */
 
@@ -135,6 +144,8 @@ export default class Line {
      * update the target point's x and y
      * based on the given x, using this line to calculate
      *
+     * @param {Vector} target
+     * @param {Number} x
      * */
 
     updateYAndXByX( target, x ) {
@@ -169,6 +180,8 @@ export default class Line {
     /**
      * the point is out of the range of x and y of this segment?
      *  but of a line, this method is useless
+     *
+     *  @param {Vector} vector
      * */
 
     outOfRange( vector ) {

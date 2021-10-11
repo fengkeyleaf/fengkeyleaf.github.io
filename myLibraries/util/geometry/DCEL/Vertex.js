@@ -23,9 +23,13 @@ import Vector from "../elements/point/Vector.js";
 
 export default class Vertex extends Vector {
     static IDStatic = 0;
+    static NORMAL_COLOR = [ 136 / 255, 136 / 255, 136 / 255, 1 ];
 
     /**
      * constructs to create an instance of Vertex
+     *
+     * @param {Number} x
+     * @param {Number} y
      * */
 
     constructor( x, y ) {

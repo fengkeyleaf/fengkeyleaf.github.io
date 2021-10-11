@@ -37,6 +37,9 @@ export default class DCEL {
      *
      * for this one, we will find the edge with maximum clockwise angle,
      * i.e. minimum counter-clockwise angle
+     *
+     * @param {Vertex} destination
+     * @param {Vertex} origin
      * */
 
     static firstClockWiseEdge( destination, origin ) {
@@ -66,6 +69,9 @@ export default class DCEL {
      * with two vertices origin and destination
      *
      * for this one, we will find the edge with minimum clockwise angle
+     *
+     * @param {Vertex} origin
+     * @param {Vertex} destination
      * */
 
     static firstCounterClockWiseEdge( origin, destination ) {
@@ -92,6 +98,9 @@ export default class DCEL {
 
     /**
      * reset IncidentEdge
+     *
+     * @param {HalfEdge} start
+     * @param {Face} face
      * */
 
     static resetIncidentFace( start, face ) {
@@ -104,6 +113,8 @@ export default class DCEL {
 
     /**
      * walk around all halfEdges, starting at innerComponent
+     *
+     * @param {HalfEdge} outComponent
      * */
 
     static walkAroundEdge( outComponent ) {
@@ -121,6 +132,8 @@ export default class DCEL {
     /**
      * walk around all halfEdges, starting at face
      * and get visited halfEdges
+     *
+     * @param {Face} face
      * */
 
     static walkAroundEdgeFace( face ) {
@@ -142,6 +155,8 @@ export default class DCEL {
     /**
      * walk around all halfEdges, starting at face
      * and get visited vertices
+     *
+     * @param {Face} face
      * */
 
     static walkAroundVertexFace( face ) {
@@ -150,6 +165,8 @@ export default class DCEL {
 
     /**
      * get all incident edges of the vertex
+     *
+     * @param {Vertex} vertex
      * */
 
     static allIncidentEdges( vertex ) {

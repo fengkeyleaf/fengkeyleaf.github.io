@@ -11,6 +11,7 @@
  */
 
 import CompareElement from "../../../CompareElement.js";
+import MonotoneVertex from "../../DCEL/MonotoneVertex.js";
 
 /**
  * Data structure of Circle
@@ -26,6 +27,8 @@ export default class Circle {
         this.center = CompareElement.chooseWhich( paras.center, null );
         // double
         this.radius = CompareElement.chooseWhich( paras.radius, null );
+        this.radius = this.radius == null ? 2 : this.radius;
+        this.color = CompareElement.chooseWhich( paras.color, null );
     }
 
     // https://blog.csdn.net/wzwxwc1987/article/details/113586007
@@ -36,31 +39,36 @@ export default class Circle {
         let points = [];
         this.__getPointsCommonPart( points, n, 360 / n );
 
-        return points;
+        let colors = [];
+        for ( let i = 0; i < n; i++ )
+            colors = colors.concat( this.color );
+
+        return { points, colors };
     }
 
     getPoints( n = 36 ) {
         console.assert( n > 0 );
         let points = [ this.center.x, this.center.y ];
         this.__getPointsCommonPart( points, n, 360 / n );
-        // for ( let i = 0; i < n; i++ ) {
-        //     let xy = this.getXYByIndex( i, stepAngle );
-        //     let { x, y } = xy;
-        //     points.push( x );
-        //     points.push( y );
-        // }
 
         //如果没有下面3行代码，会出现一个缺口
         let xyRight = this.__getXYByIndex( 0, n );
         points.push( xyRight.x );
         points.push( xyRight.y );
-        return points;
+
+        let colors = [];
+        for ( let i = 0; i < n + 2; i++ )
+            colors = colors.concat( this.color );
+
+        return { points, colors };
     }
 
     /**
      * private
      *
      * @param {[]} points
+     * @param {Number} n
+     * @param {Number} stepAngle
      */
 
     __getPointsCommonPart( points, n, stepAngle ) {
@@ -77,8 +85,8 @@ export default class Circle {
     __getXYByIndex( index, stepAngle ) {
         let angle = stepAngle * index;
         let angleInRadian = angle * Math.PI / 180;
-        let x = Math.cos( angleInRadian ) * this.radius;
-        let y = Math.sin( angleInRadian ) * this.radius;
+        let x = Math.cos( angleInRadian ) * this.radius + this.center.x;
+        let y = Math.sin( angleInRadian ) * this.radius + this.center.y;
         return { x, y }
     }
 }
