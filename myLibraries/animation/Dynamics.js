@@ -30,11 +30,11 @@ export default class Dynamics {
         if ( isUpdate ) animator.ballsCollided = [];
 
         let res = false;
-        console.assert( !animator.balls.isEmpty() );
-        for ( let i = 0; i < animator.balls.length; i++ ) {
-            let ball1 = animator.balls[ i ];
-            for ( let j = i + 1; j < animator.balls.length; j++ ) {
-                let ball2 = animator.balls[ j ];
+        console.assert( !animator.objects.isEmpty() );
+        for ( let i = 0; i < animator.objects.length; i++ ) {
+            let ball1 = animator.objects[ i ];
+            for ( let j = i + 1; j < animator.objects.length; j++ ) {
+                let ball2 = animator.objects[ j ];
                 if ( ball1.isColliding( ball2 ) ) {
                     if ( isUpdate ) animator.ballsCollided.push( [ ball1, ball2 ] );
                     res = true;
@@ -63,7 +63,7 @@ export default class Dynamics {
         // Dt = t' - t
         let dt = isLeft ? tMid - t1 : ( t2 - t1 ) - ( tMid - t1 );
         // update all objects' position with Dt
-        animator.balls.forEach( b => {
+        animator.objects.forEach( b => {
             if ( !isLeft ) b.v.negate();
             b.updatePos( dt );
             if ( !isLeft ) b.v.negate();

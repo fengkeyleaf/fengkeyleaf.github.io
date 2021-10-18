@@ -2,15 +2,16 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Assignment #1 KeyFraming</title>
+    <title>Assignment #0 Animation Framework</title>
     <link rel="stylesheet" href="../assignmentZero/CSS/Index.css">
 
-    <script src="https://threejs.org/build/three.js"></script>
-    <script src="./JavaScript/Initializer.js"></script>
+    <script src="http://www.yanhuangxueyuan.com/versions/threejsR92/build/three.js"></script>
 </head>
 <body>
-<script>
-    window.onload = init;
+<script type="module">
+    import Animator from "./AnimatorZero.js";
+
+    window.onload = Animator.run;
 </script>
 </body>
 </html>
