@@ -45,6 +45,13 @@ export default class SnapShot {
             drawingType: Program.TRIANGLE_FAN
         };
 
+        this.pseudocode = {
+            main: null,
+            sub: null,
+            indicesMain: [],
+            indicesSub: []
+        };
+
         this.ID = SnapShot.IDStatic++;
     }
 
@@ -132,6 +139,131 @@ export default class SnapShot {
     }
 
     /**
+     * @param {Number} i
+     */
+
+    addMainPseIndices( ...i ) {
+        this.pseudocode.indicesMain = this.pseudocode.indicesMain.concat( i );
+    }
+
+    /**
+     * @param {Number} i
+     */
+
+    addSubPseIndices( ...i ) {
+        this.pseudocode.indicesSub = this.pseudocode.indicesSub.concat( i );
+    }
+
+    /**
+     * @param {HTMLElement} element
+     */
+
+    setMainPse( element ) {
+        this.pseudocode.main = element;
+    }
+
+    /**
+     * @param {HTMLElement} element
+     */
+
+    setSubPse( element ) {
+        this.pseudocode.sub = element;
+    }
+
+    __hidden() {
+        if ( this.pseudocode.main != null )
+            this.pseudocode.main.style.display = "none";
+
+        if ( this.pseudocode.sub != null )
+            this.pseudocode.sub.style.display = "none";
+
+        if ( !this.pseudocode.indicesMain.isEmpty() )
+            SnapShot.__leavePse( this.pseudocode.main.children[ this.pseudocode.indicesMain.getLast() ] );
+
+        if ( !this.pseudocode.indicesSub.isEmpty() )
+            SnapShot.__leavePse( this.pseudocode.sub.children[ this.pseudocode.indicesSub.getLast() ] );
+    }
+
+    /**
+     * @param {HTMLElement} element
+     */
+
+    static __selectPse( element ) {
+        element.style.backgroundColor = "#AAAAAA";
+        element.style.color = "#FFFFFF";
+    }
+
+    /**
+     * @param {HTMLElement} element
+     */
+
+    static __leavePse( element ) {
+        element.style.backgroundColor = "#FFFFFF";
+        element.style.color = "#000000";
+    }
+
+    /**
+     * @param {Number} i
+     * @param {[HTMLElement]} elements
+     */
+
+    static __select( i, elements ) {
+        if ( i > 0 ) SnapShot.__leavePse( elements[ i - 1 ] );
+        console.assert( elements[ i ], i );
+        SnapShot.__selectPse( elements[ i ] );
+
+        return i + 1 < elements.length;
+    }
+
+    highlightPse() {
+        console.log( this );
+
+        let main = Main.main;
+
+        if ( main.preSnapshot != null )
+            main.preSnapshot.__hidden();
+
+        this.pseudocode.main.style.display = "block";
+
+        let elements = [];
+        this.pseudocode.indicesMain.forEach( i => elements.push( this.pseudocode.main.children[ i ] ) );
+
+        if ( this.pseudocode.sub != null ) {
+            this.pseudocode.sub.style.display = "block";
+            console.assert( !this.pseudocode.indicesSub.isEmpty() );
+            this.pseudocode.indicesSub.forEach( i => elements.push( this.pseudocode.sub.children[ i ] ) );
+        }
+
+        selectAnimation( elements );
+
+        function selectAnimation( elements ) {
+            if ( elements.isEmpty() ) return;
+
+            let i = 0;
+            let time = ( SnapShot.animationTime * 2 + 200 ) / elements.length;
+            time = time < 200 ? 200 : time; // min: 200 ms
+
+            function start() {
+                return new Promise( function ( resolve, reject ) {
+                    resolve = next;
+                    reject = console.log;
+                    SnapShot.__select( i++, elements ) ? setTimeout( resolve, time ) : reject( "select done" );
+                } );
+            }
+
+            function next() {
+                return new Promise( function ( resolve, reject ) {
+                    resolve = start;
+                    reject = console.log;
+                    SnapShot.__select( i++, elements ) ? setTimeout( resolve, time ) : reject( "select done" );
+                } );
+            }
+
+            start().then( null, null );
+        }
+    }
+
+    /**
      * @param {Number} len
      * @param {Stack} snapshotsCurrent
      */
@@ -183,17 +315,24 @@ export default class SnapShot {
             return;
         }
 
+        // animate pseudocode
+        this.highlightPse();
+
         // push original polygon's drawing data
         Main.main.pushData( this.polygons.points, this.polygons.colors, this.polygons.drawingType );
 
         // draw previous stack status
         console.assert( Main.main.preSnapshot.stackPoints.points.length === Main.main.preSnapshot.stackPoints.colors.length );
-        if ( !Main.main.preSnapshot.isEndOfThisMonotone ) {
-            for ( let i = 0; i < Main.main.preSnapshot.stackPoints.points.length; i++ ) {
-                // console.log( "test");
-                Main.main.pushData( Main.main.preSnapshot.stackPoints.points[ i ], Main.main.preSnapshot.stackPoints.colors[ i ], Main.main.preSnapshot.stackPoints.drawingType[ i ] );
-            }
+        for ( let i = 0; i < this.stackPoints.points.length; i++ ) {
+            Main.main.pushData( this.stackPoints.points[ i ], this.stackPoints.colors[ i ], this.stackPoints.drawingType[ i ] );
         }
+
+        // if ( !Main.main.preSnapshot.isEndOfThisMonotone ) {
+        //     for ( let i = 0; i < Main.main.preSnapshot.stackPoints.points.length; i++ ) {
+        //         // console.log( "test");
+        //         Main.main.pushData( Main.main.preSnapshot.stackPoints.points[ i ], Main.main.preSnapshot.stackPoints.colors[ i ], Main.main.preSnapshot.stackPoints.drawingType[ i ] );
+        //     }
+        // }
 
         // Main.main.drawer.draw( Main.main.allDrawingPoints, Main.main.allDrawingColors, Main.main.allDrawingTypes );
 
@@ -209,7 +348,6 @@ export default class SnapShot {
         this.__draw( len, Main.main.snapshotsCurrentTri );
 
         // draw previous vertices int the stack
-
         console.assert( this.sweepLines.points );
         console.assert( Main.main.preSnapshot !== null );
 

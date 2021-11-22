@@ -109,7 +109,15 @@ export default class AnimatorOne extends AnimatorZero {
 
         this.preTime = this.currentKeyframe.time;
         this.nextTime = this.nextKeyframe.time;
-        this.interval = this.nextTime - this.preTime;
+        // this.interval = this.nextTime - this.preTime;
+    }
+
+    printInfo() {
+        console.log( Animator.animator );
+        console.log( Animator.animator.group1 );
+        console.log( "position", Animator.animator.group1.position );
+        console.log( "rotation", Animator.animator.group1.rotation );
+        console.log( "scale", Animator.animator.group1.scale );
     }
 
     static initData() {
@@ -158,14 +166,16 @@ export default class AnimatorOne extends AnimatorZero {
         let u = KeyFraming.mapTtoU( current, Animator.animator.preTime, Animator.animator.nextTime );
         // Perform interpolation, for u value
         // Translation
-        KeyFraming.LinearInterpolation( Animator.animator.group1.position, u, Animator.animator.currentKeyframe.position, Animator.animator.nextKeyframe.position );
+        let po = KeyFraming.LinearInterpolation( u, Animator.animator.currentKeyframe.position, Animator.animator.nextKeyframe.position );
+        Animator.animator.group1.position.set( po.x, po.y, po.z );
 
         // Orientation
         // 1) As rotation assumes normalized axis, quaternions should
         // be normalized to be used for rotation.
         // 2) Allows for concatenation of rotations via quaternion
         // multiplication (with a caveat…e.g. must multiply in reverse order ).
-        KeyFraming.slerp( Animator.animator.mesh1.quaternion, u, Animator.animator.currentKeyframe, Animator.animator.nextKeyframe );
+        let newQuat = KeyFraming.slerp( u, Animator.animator.currentKeyframe, Animator.animator.nextKeyframe );
+        Animator.animator.mesh1.quaternion.set( newQuat.x, newQuat.y, newQuat.z, newQuat.w );
         // Construct transformation matrix
         // Apply to object coordinates
         // Render
@@ -178,7 +188,7 @@ export default class AnimatorOne extends AnimatorZero {
         this.preTime = this.currentKeyframe.time;
         console.assert( this.nextKeyframe, this.endIndex );
         this.nextTime = this.nextKeyframe.time;
-        this.interval = this.nextTime - this.preTime;
+        // this.interval = this.nextTime - this.preTime;
         this.printInfo();
     }
 }

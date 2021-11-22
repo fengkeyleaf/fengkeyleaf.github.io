@@ -22,6 +22,52 @@ import MyMath from "../lang/MyMath.js";
 export default class KeyFraming {
 
     /**
+     * @param {CubicBezierCurve3} curve
+     * @param {Number} divisions
+     * @param {Number} startTime, ms
+     * @param {Number} rate
+     */
+
+    static getKeyFramesFromBezierCurve( curve, divisions, startTime, rate ) {
+        const points = curve.getPoints( divisions );
+        let frames = [];
+        points.forEach( v => {
+            frames.push( {
+                time: startTime,
+                position: v
+            } );
+            startTime += rate;
+        } );
+
+        return frames;
+    }
+
+    /**
+     * @param {Array} currents
+     * @param {Array} nexts
+     * @param {Number} u
+     */
+
+    static interpolatingMultiples( currents, nexts, u ) {
+        console.assert( MyMath.doubleCompare( u, 1 ) <= 0 && MyMath.doubleCompare( u, 0 ) >= 0, u );
+        let res = [];
+        console.assert( currents.length === nexts.length, currents, nexts );
+        for ( let i = 0; i < currents.length; i++ ) {
+            let po = KeyFraming.LinearInterpolation( u, currents[ i ].position, nexts[ i ].position );
+            // let q = KeyFraming.slerp( u, currents[ i ], nexts[ i ] );
+            let q = new THREE.Quaternion();
+            q.slerpQuaternions( currents[ i ].quaternion, currents[ i ].quaternion, u );
+            res.push( {
+                name: currents[ i ].name,
+                position: po,
+                quaternion: q
+            } );
+        }
+
+        return res;
+    }
+
+    /**
      * @param {Number} currentT
      * @param {Number} initT
      * @param {Number} EndT
@@ -47,16 +93,17 @@ export default class KeyFraming {
     }
 
     /**
-     * @param {Vector3} position
      * @param {Number} u
      * @param {Vector3} currentKeyframe
      * @param {Vector3} nextKeyframe
      */
 
-    static LinearInterpolation( position, u, currentKeyframe, nextKeyframe ) {
-        position.setX( KeyFraming.__LinearInterpolation( u, currentKeyframe.x, nextKeyframe.x ) );
-        position.setY( KeyFraming.__LinearInterpolation( u, currentKeyframe.y, nextKeyframe.y ) );
-        position.setZ( KeyFraming.__LinearInterpolation( u, currentKeyframe.z, nextKeyframe.z ) );
+    static LinearInterpolation( u, currentKeyframe, nextKeyframe ) {
+        let x = KeyFraming.__LinearInterpolation( u, currentKeyframe.x, nextKeyframe.x );
+        let y = KeyFraming.__LinearInterpolation( u, currentKeyframe.y, nextKeyframe.y );
+        let z = KeyFraming.__LinearInterpolation( u, currentKeyframe.z, nextKeyframe.z );
+
+        return new THREE.Vector3( x, y, z );
     }
 
     /**
@@ -67,14 +114,17 @@ export default class KeyFraming {
      * @param {Number} u
      */
 
+    // TODO: 11/2/2021 cannot handle cases where res < 0 or res > 1, where res = q1.dot( q2 )
     static __slerp( q1, q2, u ) {
+        console.assert( q1, q1 );
+        console.assert( q2, q2 );
         const res = q1.dot( q2 );
         if ( MyMath.equalsQuaternion( q1, q2 ) ) {
             console.assert( MyMath.equalsQuaternion( q1, q2 ) );
             return q1;
         }
         console.assert( !MyMath.equalsQuaternion( q1, q2 ) );
-        console.assert( MyMath.doubleCompare( res, 1 ) <= 0 && MyMath.doubleCompare( res, -1 ) >= 0, q1, q2 );
+        console.assert( MyMath.doubleCompare( res, 1 ) <= 0 && MyMath.doubleCompare( res, -1 ) >= 0, res, q1, q2 );
         const THETA = Math.acos( res ); // in radians
         console.assert( THETA, THETA, q1, q2 );
         const SIN_THETA = Math.sin( THETA );
@@ -92,15 +142,13 @@ export default class KeyFraming {
     /**
      * Spherical Linear Interpolation (Slerp)
      *
-     * @param {Quaternion} q
      * @param {Number} u
-     * @param {{}} currentQuaternion
-     * @param {{}} nextQuaternion
+     * @param {Quaternion} currentQuaternion
+     * @param {Quaternion} nextQuaternion
      */
 
-    static slerp( q, u, currentQuaternion, nextQuaternion ) {
+    static slerp( u, currentQuaternion, nextQuaternion ) {
         console.assert( MyMath.doubleCompare( u, 1 ) <= 0 && MyMath.doubleCompare( u, 0 ) >= 0, u );
-        let newQuat = KeyFraming.__slerp( currentQuaternion.quaternion, nextQuaternion.quaternion, u );
-        q.set( newQuat.x, newQuat.y, newQuat.z, newQuat.w );
+        return KeyFraming.__slerp( currentQuaternion.clone(), nextQuaternion.clone(), u );
     }
 }

@@ -11,6 +11,7 @@
  */
 
 import MyMath from "../lang/MyMath.js";
+import Cushion from "../../animation/assignmentTwo/Cushion.js";
 
 /**
  * This class consists exclusively of static methods
@@ -20,6 +21,10 @@ import MyMath from "../lang/MyMath.js";
  */
 
 export default class Dynamics {
+    static origin = new THREE.Vector3( 0, 0, 0 );
+    static xAxis = new THREE.Vector3( 1, 0, 0 );
+    static yAxis = new THREE.Vector3( 0, 1, 0 );
+    static zAxis = new THREE.Vector3( 0, 0, 1 );
 
     /**
      * @param {Animator} animator
@@ -33,6 +38,8 @@ export default class Dynamics {
         console.assert( !animator.objects.isEmpty() );
         for ( let i = 0; i < animator.objects.length; i++ ) {
             let ball1 = animator.objects[ i ];
+            if ( ball1 instanceof Cushion ) continue;
+
             for ( let j = i + 1; j < animator.objects.length; j++ ) {
                 let ball2 = animator.objects[ j ];
                 if ( ball1.isColliding( ball2 ) ) {

@@ -13,11 +13,19 @@
 import MyMath from "../lang/MyMath.js";
 import DCEL from "../util/geometry/DCEL/DCEL.js";
 import Drawer from "./geometry/Drawer.js";
+import MonotoneVertex from "../util/geometry/DCEL/MonotoneVertex.js";
+import Main from "../../finalProject/JavaScript/Main.js";
+import Vertex from "../util/geometry/DCEL/Vertex.js";
+import Circle from "../util/geometry/elements/cycle/Circle.js";
+import Vector from "../util/geometry/elements/point/Vector.js";
 
 /**
  *
  * Reference resource for setting up webgl:
  * assignments of CSCI-610 foundation of graphics
+ *
+ * and:
+ * http://www.yanhuangxueyuan.com/WebGL/
  *
  * @author Xiaoyu Tongyang, or call me sora for short
  */
@@ -29,7 +37,7 @@ export default class Program {
     static TRIANGLE_FAN = 6;
 
     constructor( paras ) {
-        Program.check( paras );
+        Program.__check( paras );
 
         // Global variables that are set and used
         // across the application
@@ -48,10 +56,11 @@ export default class Program {
         this.triangulationPoints = null;
         this.triangulationColors = null;
 
-        this.initWebGl( paras );
+        this.__initWebGl( paras );
+        this.__addCanvasEvents();
     }
 
-    static check( paras ) {
+    static __check( paras ) {
         console.assert( paras.webgl );
         console.assert( paras.vertexShader );
         console.assert( paras.fragmentShader );
@@ -63,7 +72,7 @@ export default class Program {
      * Entry point to our application
      * */
 
-    initWebGl( paras ) {
+    __initWebGl( paras ) {
         // Retrieve the canvas
         this.canvas = document.getElementById( paras.webgl );
         // console.log( this.canvas.width, this.canvas.height );
@@ -88,16 +97,79 @@ export default class Program {
         this.gl.clearDepth( 1.0 )
 
         // Read, compile, and link your shaders
-        this.initProgram( paras );
+        this.__initProgram( paras );
+    }
+
+    __addCanvasEvents() {
+        console.assert( this.canvas != null );
+
+        Main.main.originalWidth = this.canvas.width / 2;
+        Main.main.originalHeight = this.canvas.height / 2;
+        this.canvas.addEventListener( "click", function ( event ) {
+            Main.main.whichInput = Main.InputType.CANVAS;
+            let vertices = Main.main.vertices;
+            let x = event.offsetX;
+            let y = event.offsetY;
+
+            // coordinate of a widget, assume width = height = 600
+            //              0
+            //
+            //
+            // 0            300             600 ( x )
+            //
+            //
+            //              600( y )
+            let vertex = new Vector( x, y, -1 );
+            // ignore duplicate points
+            if ( !vertices.isEmpty() && vertices.getLast().equalsXAndY( vertex ) ) return;
+
+            // coordinate of the webgl canvas
+            //                          1( y, 300 )
+            //
+            //
+            // -1( x, -300 )            0                    1 ( x, 600 )
+            //
+            //
+            //                          -1( y, -300 )
+            let halfWidth = Main.main.originalWidth;
+            let halfHeight = Main.main.originalHeight;
+
+            let xCal = vertex.x >= halfWidth ? vertex.x - halfWidth : vertex.x - halfWidth;
+            let yCal = vertex.y >= halfHeight ? vertex.y - halfHeight : vertex.y - halfHeight;
+            // The coordinate of a widget is much like that of Java GUI,
+            // so we need to flip y
+            vertices.push( new MonotoneVertex( xCal, -yCal ) );
+
+            // points lie in the range of [ 0. 2 ],
+            // then minus 1, they lie in the range of [ -1, 1 ],
+            // just the same range that webgl requires
+            // note that we could use this result to get points for calculating those polygons:
+            // xCal = xCanvas * halfWidth,
+            // this is correct, but will introduce precision issue,
+            // since we use division.
+            // So this method is not recommended to compute actual polygon vertices
+            // Further, the previous method can calculate points drawn in the webgl,
+            // but I leave both approaches for your guys.
+            let xCanvas = vertex.x / halfWidth - 1;
+            let yCanvas = vertex.y / halfHeight - 1;
+            let { points, colors } = new Circle( {
+                center: new Vertex( xCanvas, -yCanvas ),
+                radius: 0.01,
+                color: Vertex.NORMAL_COLOR
+            } ).getPoints();
+            // console.log( vertex, new Vertex( xCanvas, -yCanvas ), vertices.getLast() );
+            Main.main.pushData( new Float32Array( points ), new Float32Array( colors ), Program.TRIANGLE_FAN );
+            Main.main.draw();
+        } );
     }
 
     /**
      * Create a program with the appropriate vertex and fragment shaders
      * */
 
-    initProgram( paras ) {
-        this.vertexShader = this.getShader( paras.vertexShader );
-        this.fragmentShader = this.getShader( paras.fragmentShader );
+    __initProgram( paras ) {
+        this.vertexShader = this.__getShader( paras.vertexShader );
+        this.fragmentShader = this.__getShader( paras.fragmentShader );
 
         // Create a program
         this.program = this.gl.createProgram();
@@ -125,7 +197,7 @@ export default class Program {
      * from the DOM and return the compiled shader
      * */
 
-    getShader( id ) {
+    __getShader( id ) {
         const script = document.getElementById( id );
         const shaderString = script.text.trim();
 
@@ -153,9 +225,9 @@ export default class Program {
     }
 
     /**
-     * @param {[[]]} points points
-     * @param {[[]]} colors colors
-     * @param {[]} drawingTypes drawingTypes
+     * @param {[Float32Array]} points points
+     * @param {[Float32Array]} colors colors
+     * @param {[Number]} drawingTypes drawingTypes
      */
 
     draw( points, colors, drawingTypes ) {
@@ -172,27 +244,24 @@ export default class Program {
         for ( let i = 0; i < points.length; i++ ) {
             // console.log( points[i], colors[i] );
             bufferPos = this.gl.createBuffer();
-            //绑定缓冲区对象,激活buffer
+            // vertex buffer
+            // bind and activate buffer
             this.gl.bindBuffer( this.gl.ARRAY_BUFFER, bufferPos );
-            //顶点数组data数据传入缓冲区
+            // pass data array into the buffer
             this.gl.bufferData( this.gl.ARRAY_BUFFER, points[ i ], this.gl.STATIC_DRAW );
-            //缓冲区中的数据按照一定的规律传递给位置变量apos
+            // define how to interpret data
             this.gl.vertexAttribPointer( this.program.aVertexPosition, 2, this.gl.FLOAT, false, 0, 0 );
-            //允许数据传递
+            // enable data passing
             this.gl.enableVertexAttribArray( this.program.aVertexPosition );
 
-            /**
-             创建缓冲区colorBuffer，传入顶点颜色数据colorData
-             **/
-
+            // color buffer
             bufferColor = this.gl.createBuffer();
             this.gl.bindBuffer( this.gl.ARRAY_BUFFER, bufferColor );
             this.gl.bufferData( this.gl.ARRAY_BUFFER, colors[ i ], this.gl.STATIC_DRAW );
             this.gl.vertexAttribPointer( this.program.aColor, 4, this.gl.FLOAT, false, 0, 0 );
             this.gl.enableVertexAttribArray( this.program.aColor );
 
-            //开始绘制图形
-
+            // starting drawing
             // console.log( points.length );
             let n = drawingTypes[ i ] === 2 ? points[ i ].length / 2 : 38;
             console.assert( drawingTypes[ i ] === 6 || drawingTypes[ i ] === 2 && points[ i ].length % 2 === 0, drawingTypes );

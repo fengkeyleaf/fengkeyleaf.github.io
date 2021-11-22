@@ -1,0 +1,101 @@
+/* global settings start */
+
+* {
+    margin: 0;
+    padding: 0;
+    /*overflow: hidden;*/
+    /*background-color: #FAF9DE;*/
+}
+
+html {
+    padding: 12px;
+    background-color: #FAF9DE;
+}
+
+ul li{
+    list-style: none;
+}
+
+/* global settings end */
+
+/* main settings start */
+
+.main {
+    width: 1600px;
+    height: 645px;
+}
+
+canvas {
+    float: left;
+    border: 1px solid grey;
+    background-color: white;
+}
+
+#pseudocode {
+    width: 500px;
+    height: 600px;
+    float: left;
+    margin: 0px 0 0 40px;
+    border: 1px solid grey;
+    background-color: white;
+    position: relative;
+}
+
+.subPseudocode {
+    width: 100%;
+    border-top: 1px solid grey;
+    position: absolute;
+    top: 380px;
+}
+
+.operation {
+    margin: auto;
+    float: left;
+}
+
+.operation h2 {
+    margin: 0px 0px 20px;
+}
+
+.operation button {
+    margin: 0px 10px;
+    width: 70px;
+    height: 30px;
+    border-radius: 6px;
+}
+
+input {
+    margin: 0px 0px 10px 70px;
+}
+
+.functions {
+    width: 340px;
+    margin: 20px 0px 40px;
+    text-align: center;
+}
+
+#getStarted {
+    width: 140px;
+    height: 40px;
+    border-radius: 6px;
+}
+
+/* main settings end */
+
+
+/* instructions and display settings start */
+
+.instructions {
+    display: inline-block;
+}
+
+.display {
+    display: inline-block;
+}
+
+/* instructions and display end */
+
+
+/* footer settings start */
+
+/* footer end */

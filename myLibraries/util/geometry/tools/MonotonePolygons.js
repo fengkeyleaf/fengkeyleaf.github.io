@@ -154,8 +154,8 @@ export default class MonotonePolygons {
         }
 
         // regular vertex
-        let rightShiftedPoint = new Vector( base.x + MonotonePolygons.SHIFT, base.y );
-        let leftShiftedPoint = new Vector( base.x - MonotonePolygons.SHIFT, base.y );
+        let rightShiftedPoint = new Vector( base.x + MonotonePolygons.SHIFT, base.y, -1 );
+        let leftShiftedPoint = new Vector( base.x - MonotonePolygons.SHIFT, base.y, -1 );
         // left regular vertex,
         // if the interior of P lies to the right of vi
         if ( Polygons.isInsidePolygon( rightShiftedPoint, base, prev, next ) ) {
@@ -195,19 +195,33 @@ export default class MonotonePolygons {
      * @param {MonotoneVertex} vertex
      * @param {StatusRBTree} statusRBTree
      * @param {[Face]} faces
+     * @param {SnapShot} snapshot
      */
 
-    static handleRegularVertex( vertex,
-                                statusRBTree, faces ) {
+    static __handleRegularVertex( vertex,
+                                  statusRBTree, faces, snapshot ) {
+        snapshot.addSubPseIndices( 1 );
+
         // if the interior of P lies to the right of vi
         if ( vertex.vertexType === MonotoneVertex.VertexType.REGULAR_LEFT ) {
-            this.handleEndVertex( vertex, statusRBTree, faces );
-            this.handleStartVertex( vertex, statusRBTree );
+            this.__handleEndVertex( vertex, statusRBTree, faces, snapshot );
+            // map to end vertex pse indices
+            for ( let i = 1; i < snapshot.pseudocode.indicesSub.length; i++ ) {
+                snapshot.pseudocode.indicesSub[ i ]++;
+            }
+
+            this.__handleStartVertex( vertex, statusRBTree );
+            // map to start vertex pse indices
+            snapshot.addSubPseIndices( 5 );
             return;
         }
 
         // else the interior of P lies to the left of vi
-        this.handleMergeVertexCommonPart( vertex, statusRBTree, faces );
+        this.__handleMergeVertexCommonPart( vertex, statusRBTree, faces, snapshot );
+        // map to merge vertex pse indices( common part only )
+        for ( let i = 1; i < snapshot.pseudocode.indicesSub.length; i++ ) {
+            snapshot.pseudocode.indicesSub[ i ] += 2;
+        }
     }
 
     /**
@@ -217,10 +231,13 @@ export default class MonotonePolygons {
      * @param {MonotoneVertex} vertex
      * @param {StatusRBTree} statusRBTree
      * @param {[Face]} faces
+     * @param {SnapShot} snapshot
      */
 
-    static handleMergeVertexCommonPart( vertex,
-                                        statusRBTree, faces ) {
+    static __handleMergeVertexCommonPart( vertex,
+                                          statusRBTree, faces, snapshot ) {
+        snapshot.addSubPseIndices( 4, 5 );
+
         // Search in T to find the edge e j directly left of vi.
         let left = statusRBTree.lowerVal( vertex );
         // if helper(ej) is a merge vertex
@@ -228,10 +245,14 @@ export default class MonotonePolygons {
             console.assert( left.vertex.incidentEdge.incidentFace === vertex.incidentEdge.incidentFace );
             // 	then Insert the diagonal connecting vi to helper(e j) in D.
             HalfEdge.connectHelper( left.vertex, vertex, faces );
+
+            snapshot.addSubPseIndices( 6 );
         }
 
         // helper(e j)←vi
         left.vertex = vertex;
+
+        snapshot.addSubPseIndices( 7 );
     }
 
     /**
@@ -240,12 +261,13 @@ export default class MonotonePolygons {
      * @param {MonotoneVertex} vertex
      * @param {StatusRBTree} statusRBTree
      * @param {[Face]} faces
+     * @param {SnapShot} snapshot
      */
 
-    static handleMergeVertex( vertex,
-                              statusRBTree, faces ) {
-        this.handleEndVertex( vertex, statusRBTree, faces );
-        this.handleMergeVertexCommonPart( vertex, statusRBTree, faces );
+    static __handleMergeVertex( vertex,
+                                statusRBTree, faces, snapshot ) {
+        this.__handleEndVertex( vertex, statusRBTree, faces, snapshot );
+        this.__handleMergeVertexCommonPart( vertex, statusRBTree, faces, snapshot );
     }
 
     /**
@@ -256,8 +278,7 @@ export default class MonotonePolygons {
      * @param {[Face]} faces
      */
 
-    static handleSplitVertex( vertex,
-                              statusRBTree, faces ) {
+    static __handleSplitVertex( vertex, statusRBTree, faces ) {
         // Search in T to find the edge e j directly left of vi.
         let left = statusRBTree.lowerVal( vertex );
         console.assert( left !== null, vertex );
@@ -266,7 +287,7 @@ export default class MonotonePolygons {
         // helper(e j)←vi
         left.vertex = vertex;
         // Insert ei in T and set helper(ei) to vi.
-        this.handleStartVertex( vertex, statusRBTree );
+        this.__handleStartVertex( vertex, statusRBTree );
     }
 
     /**
@@ -275,10 +296,13 @@ export default class MonotonePolygons {
      * @param {MonotoneVertex} vertex
      * @param {StatusRBTree} statusRBTree
      * @param {[Face]} faces
+     * @param {SnapShot} snapshot
      */
 
-    static handleEndVertex( vertex,
-                            statusRBTree, faces ) {
+    static __handleEndVertex( vertex, statusRBTree,
+                              faces, snapshot ) {
+        snapshot.addSubPseIndices( 1 );
+
         // Delete ei−1 from T.
         // vertex must be on the line of ei-1, as the lower endpoint
         let prevEvent = statusRBTree.deleteAndGetVal( vertex );
@@ -290,15 +314,10 @@ export default class MonotonePolygons {
             // then Insert the diagonal connecting vi to helper(ei−1) in D.
             HalfEdge.connectHelper( prevEvent.vertex, vertex, faces );
 
-            // console.log( "end add " );
-            // console.log( new Float32Array( Drawer.drawLines( prevEvent.vertex, vertex ) ) );
-            // let snapshot = new SnapShot();
-            // snapshot.addCurrent( Main.main.drawer.polygonsPoints, Main.main.drawer );
-            // snapshot.addCurrent( new Float32Array( Drawer.drawLines( prevEvent.vertex, vertex ) ), Main.main.drawer );
-            // Main.main.snapshots.push( snapshot );
-            // Main.main.snapshots.push( new SnapShot().addCurrent( Main.main.drawer.polygonsPoints, Main.main.drawer ) );
-            // Main.main.snapshots.push( new SnapShot().addCurrent( new Float32Array( Drawer.drawLines( prevEvent.vertex, vertex ) ), Main.main.drawer ) );
+            snapshot.addSubPseIndices( 2 );
         }
+
+        snapshot.addSubPseIndices( 3 );
     }
 
     /**
@@ -308,7 +327,7 @@ export default class MonotonePolygons {
      * @param {StatusRBTree} statusRBTree
      */
 
-    static handleStartVertex( vertex, statusRBTree ) {
+    static __handleStartVertex( vertex, statusRBTree ) {
         // Insert ei in T and set helper(ei) to vi.
         console.assert( vertex.incidentEdge.origin === vertex );
         let line = new Line( vertex, vertex.incidentEdge.next.origin );
@@ -348,25 +367,41 @@ export default class MonotonePolygons {
             let vertex = priorityQueue[ i ];
 
             // add a snapshot for this vertex in partitioning monotone polygons
-            SnapShot.addSnapshot( vertex );
+            let snapshot = SnapShot.addSnapshot( vertex );
+            let main = Main.main;
+            // load main pseudocode animation
+            snapshot.setMainPse( main.monoPse );
+            snapshot.addMainPseIndices( 3, 4, 5 );
 
-            // 	Call the appropriate procedure to handle the vertex, depending on its type.
+            // Call the appropriate procedure to handle the vertex, depending on its type.
             switch ( vertex.vertexType ) {
                 case MonotoneVertex.VertexType.START:
-                    this.handleStartVertex( vertex, statusRBTree );
+                    this.__handleStartVertex( vertex, statusRBTree );
+                    // and load sub pseudocode animation for start vertex
+                    snapshot.setSubPse( main.startV );
+                    snapshot.addSubPseIndices( 1 );
                     break;
                 case MonotoneVertex.VertexType.SPLIT:
-                    this.handleSplitVertex( vertex, statusRBTree, faces );
+                    this.__handleSplitVertex( vertex, statusRBTree, faces );
+                    // and load sub pseudocode animation for split vertex
+                    snapshot.setSubPse( main.splitV );
+                    snapshot.addSubPseIndices( 1, 2, 3, 4 );
                     break;
                 case MonotoneVertex.VertexType.END:
-                    this.handleEndVertex( vertex, statusRBTree, faces );
+                    this.__handleEndVertex( vertex, statusRBTree, faces, snapshot );
+                    // and load sub pseudocode animation for end vertex
+                    snapshot.setSubPse( main.endV );
                     break;
                 case MonotoneVertex.VertexType.MERGE:
-                    this.handleMergeVertex( vertex, statusRBTree, faces );
+                    this.__handleMergeVertex( vertex, statusRBTree, faces, snapshot );
+                    // and load sub pseudocode animation for merge vertex
+                    snapshot.setSubPse( main.mergeV );
                     break;
                 case MonotoneVertex.VertexType.REGULAR_LEFT:
                 case MonotoneVertex.VertexType.REGULAR_RIGHT:
-                    this.handleRegularVertex( vertex, statusRBTree, faces );
+                    this.__handleRegularVertex( vertex, statusRBTree, faces, snapshot );
+                    // and load sub pseudocode animation for regular vertex
+                    snapshot.setSubPse( main.regularV );
                     break;
                 default:
                     console.assert( false );
@@ -400,19 +435,28 @@ export default class MonotonePolygons {
         sortedEdges.sort( HalfEdge.sort );
         let len = sortedEdges.length;
         // Initialize an empty stack S, and push u1 and u2 onto it.
-        // and add the first two snapshots
+        // and add the first two snapshots,
         let stack = new Stack();
+        // push u1
+        let snapshot = SnapShot.addSnapshot( sortedEdges[ len - 1 ].origin ).addStack( stack.array );
         stack.push( sortedEdges[ len - 1 ] );
-        SnapShot.addSnapshot( stack.peek().origin ).addStack( stack.array );
+        // load main pseudocode animation
+        snapshot.setMainPse( Main.main.triPse );
+        snapshot.addMainPseIndices( 1, 2 );
+        // push u2
+        snapshot = SnapShot.addSnapshot( sortedEdges[ len - 2 ].origin ).addStack( stack.array );
+        snapshot.setMainPse( Main.main.triPse );
+        snapshot.addMainPseIndices( 2 );
         stack.push( sortedEdges[ len - 2 ] );
-        SnapShot.addSnapshot( stack.peek().origin ).addStack( stack.array );
 
         // for j←3 to n−1
         let edge = null;
         for ( let i = len - 3; i > 0; i-- ) {
             edge = sortedEdges[ i ];
             // add snapshot for this vertex
-            let snapshot = SnapShot.addSnapshot( edge.origin );
+            snapshot = snapshot = SnapShot.addSnapshot( edge.origin ).addStack( stack.array );
+            snapshot.setMainPse( Main.main.triPse );
+            snapshot.addMainPseIndices( 3, 4 );
 
             // 	do if uj and the vertex on top of S are on different chains
             if ( edge.isOnTheDifferentChain( stack.peek() ) ) {
@@ -428,6 +472,9 @@ export default class MonotonePolygons {
                 // Push uj−1 and uj onto S.
                 stack.push( prev );
                 stack.push( edge );
+
+                // load triangulation pseudocode animation
+                snapshot.addMainPseIndices( 5, 6, 7 );
             } else {
                 // else Pop one vertex from S.
                 let prev = stack.pop();
@@ -463,21 +510,28 @@ export default class MonotonePolygons {
                 stack.push( prev );
                 // Push uj onto S.
                 stack.push( edge );
-            }
 
-            snapshot.addStack( stack.array );
+                // load triangulation pseudocode animation
+                snapshot.addMainPseIndices( 8, 9, 10 );
+            }
         }
 
         // Add diagonals from un to all stack vertices
         // except the first and the last one.
         edge = sortedEdges[ 0 ];
+
+        // add last snapshot for the last vertex
+        snapshot = SnapShot.addSnapshot( edge.origin ).addStack( stack.array );
+        // SnapShot.addSnapshot( edge.origin ).addStack( stack.array ).isEndOfThisMonotone = true;
+
         stack.pop();
         while ( stack.size() > 1 ) {
             HalfEdge.connectHelper( edge.origin,
                 stack.pop().origin, faces );
         }
-        // add last snapshot for the last vertex
-        SnapShot.addSnapshot( edge.origin ).addStack( stack.array ).isEndOfThisMonotone = true;
+        // load triangulation pseudocode animation
+        snapshot.setMainPse( Main.main.triPse );
+        snapshot.addMainPseIndices( 11 );
 
         return faces;
     }

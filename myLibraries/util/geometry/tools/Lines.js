@@ -118,8 +118,8 @@ export default class Lines {
 
             // interpolate
             let u = KeyFraming.mapTtoU( current, 0, SnapShot.animationTime );
-            KeyFraming.LinearInterpolation( middleStart, u, startPre, startCurr );
-            KeyFraming.LinearInterpolation( middleEnd, u, endPre, endCurr );
+            middleStart = KeyFraming.LinearInterpolation( u, startPre, startCurr );
+            middleEnd = KeyFraming.LinearInterpolation( u, endPre, endCurr );
 
             // push data
             Main.main.pushData( new Float32Array( [ middleStart.x, middleStart.y, middleEnd.x, middleEnd.y ] ), colors[ i + 1 ], 2 );
@@ -175,7 +175,7 @@ export default class Lines {
 
             // interpolate
             let u = KeyFraming.mapTtoU( current, 0, SnapShot.animationTime );
-            KeyFraming.LinearInterpolation( middle, u, start, end );
+            middle = KeyFraming.LinearInterpolation( u, start, end );
 
             // push data
             Main.main.pushData( new Float32Array( [ start.x, start.y, middle.x, middle.y ] ), colors[ i ], 2 );

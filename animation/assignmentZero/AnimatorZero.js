@@ -66,7 +66,7 @@ export default class AnimatorZero extends Animator {
         let t = ( current - Animator.animator.initializingDate ) / 1000;
         Animator.animator.initializingDate = current;
 
-        requestAnimationFrame( AnimatorZero.renderZero );
+        // requestAnimationFrame( AnimatorZero.renderZero );
         Animator.animator.renderer.render( Animator.animator.scene, Animator.animator.camera );
 
         // make sure translation first and then rotation by nesting
@@ -79,8 +79,10 @@ export default class AnimatorZero extends Animator {
         // the order of translation and rotation in this way.
         // three.js will apply rotation first and then translate,
         // not the opposite order.
-        Animator.animator.group1.translateOnAxis( new THREE.Vector3( 1, 1, 0 ), 5 * t );
-        Animator.animator.mesh1.rotateY( MyMath.radians( 18 ) * t );
+        // Animator.animator.group1.translateOnAxis( new THREE.Vector3( 1, 1, 0 ), 5 * t );
+        // Animator.animator.group1.rotateZ( MyMath.radians( 18 ) * t );
+        Animator.animator.mesh1.translateX( MyMath.radians( 18 ) * t );
+        // Animator.animator.line.rotateZ( MyMath.radians( 18 ) * t );
     }
 
     initZeroOne() {
@@ -94,16 +96,33 @@ export default class AnimatorZero extends Animator {
         const LEN = 10;
         let cube = new THREE.BoxGeometry( LEN, LEN, LEN );
 
+
+
         // set up material
         let material = new THREE.MeshLambertMaterial( {
             color: 0x0000ff
         } );
 
+
         // nest the cube in the mesh,
         // then nest the mesh in the parent group
         this.mesh1 = new THREE.Mesh( cube, material );
+
+        this.offset = new THREE.Vector3( 0, 20, 0 );
+        const points = [];
+        points.push( this.mesh1.position.clone() );
+        points.push( this.mesh1.position.clone().add( this.offset ) );
+
+        const geometry = new THREE.BufferGeometry().setFromPoints( points );
+        this.line = new THREE.Line( geometry, material );
+        console.log( this.line );
+
+        // this.mesh2 = new THREE.Mesh( line, material );
         this.group1 = new THREE.Group();
         this.group1.add( this.mesh1 );
+        // this.group1.add( this.line );
+        // this.group1.add( this.mesh2 );
+        this.scene.add( this.line );
         this.scene.add( this.group1 );
 
         // set up point light
@@ -119,7 +138,7 @@ export default class AnimatorZero extends Animator {
         const WIDTH = window.innerWidth;
         const HEIGHT = window.innerHeight;
         const K = WIDTH / HEIGHT; // ratio of window
-        const S = 38; // factor to control the size of showing area
+        const S = 60; // factor to control the size of showing area
 
         // set up Orthographic Camera
         this.camera = new THREE.OrthographicCamera( -S * K, S * K, S, -S, 1, 1000 );

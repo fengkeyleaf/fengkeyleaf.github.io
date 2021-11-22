@@ -47,7 +47,7 @@ export default class CollidingObject {
         dt = dt === 0 ? 1 : dt;
         this.group.position.add( this.v.clone().multiplyScalar( dt ) );
         // console.assert( this.group.position.y === 0, this.group.position.y );
-        this.printPos();
+        // this.printPos();
     }
 
     /**

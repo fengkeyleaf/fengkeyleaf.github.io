@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pedagogical Aid of Triangulation</title>
+    <link rel="stylesheet" href="CSS/Index.css">
+
+    <script type="text/javascript" src="../myLibraries/lang/MyString.js"></script>
+    <script type="text/javascript" src="../myLibraries/lang/MyArray.js"></script>
+    <script type="text/javascript" src="http://www.yanhuangxueyuan.com/versions/threejsR92/build/three.js"></script>
+
+    <!--import test models-->
+    <!--    <script type="module" src="./JavaScript/Test.js"></script>-->
+    <!--    <script type="module" src="../myLibraries/util/tree/tools/TestBST.js"></script>-->
+    <!--    <script type="module" src="../myLibraries/util/tree/tools/TestBBST.js"></script>-->
+    <!--    <script type="module" src="../myLibraries/util/geometry/DCEL/DCEL.js"></script>-->
+    <!--    <script type="module" src="../myLibraries/lang/MyMath.js"></script>-->
+</head>
+<body>
+
+<header>
+    <h1>Pedagogical Aid of Triangulation</h1>
+</header>
+
+<div class="main">
+    <canvas id="webgl-canvas" width="600px" height="600px"></canvas>
+
+    <div id="pseudocode">
+        <ul id="monoPse" style="display: block">
+            <!--0-->
+            <li>
+                <b>Algorithm MAKEMONOTONE(P)</b><br>
+                Input. A simple polygon P stored in a doubly-connected edge list D.<br>
+                Output. A partitioning of P into monotone subpolygons, stored in D.
+            </li>
+            <!--1-->
+            <li>
+                1. Construct a priority queue Q on the vertices of P, using their y-coordinates as priority.
+                If two points have the same y-coordinate, the one with smaller x-coordinate has higher
+                priority.
+            </li>
+            <!--2-->
+            <li>2. Initialize an empty binary search tree T.</li>
+            <!--3-->
+            <li>3. <b>while</b> Q is not empty</li>
+            <!--4-->
+            <li style="padding-left: 30px">4. <b>do</b> Remove the vertex vi with the highest priority from Q.</li>
+            <!--5-->
+            <li style="padding-left: 30px">5. Call the appropriate procedure to handle the vertex, depending on its
+                type.
+            </li>
+        </ul>
+
+        <ul id="triPse" style="display: none">
+            <li>
+                <b>Algorithm TRIANGULATEMONOTONEPOLYGON(P)</b><br>
+                Input. A strictly y-monotone polygon P stored in a doubly-connected edge list D.<br>
+                Output. A triangulation of P stored in the doubly-connected edge list D.
+            </li>
+            <li>
+                1. Merge the vertices on the left chain and the vertices on the right chain of P into one
+                sequence, sorted on decreasing y-coordinate. If two vertices have the same y-coordinate,
+                then the leftmost one comes first. Let u1, ..., un denote the sorted sequence.
+            </li>
+            <li>2. Initialize an empty stack S, and push u1 and u2 onto it.</li>
+            <li>3. <b>for j <- 3 to n-1</b></li>
+            <li style="padding-left: 30px">4. <b>do if</b> uj and the vertex on top of S are on different chains</li>
+            <li style="padding-left: 60px">5. <b>then</b> Pop all vertices from S.</li>
+            <li style="padding-left: 30px">6. Insert into D a diagonal from uj to each popped vertex, except the last one.</li>
+            <li style="padding-left: 30px">7. Push uj-1 and uj onto S.</li>
+            <li style="padding-left: 30px">8. <b>else</b> Pop one vertex from S.</li>
+            <li style="padding-left: 30px">
+                9. Pop the other vertices from S as long as the diagonals from uj to them are
+                inside P. Insert these diagonals into D. Push the last vertex that has been
+                popped back onto S.
+            </li>
+            <li style="padding-left: 30px">10. Push uj onto S.</li>
+            <li>11. Add diagonals from un to all stack vertices except the first and the last one.</li>
+        </ul>
+
+        <ul id="startV" style="display: none" class="subPseudocode">
+            <li>
+                <b>HANDLESTARTVERTEX(vi)</b>
+            </li>
+            <li>1. Insert ei in T and set helper(ei) to vi.</li>
+        </ul>
+
+        <ul id="endV" style="display: none" class="subPseudocode">
+            <li>
+                <b>HANDLEENDVERTEX(vi)</b>
+            </li>
+            <li>1. <b>if</b> helper(ei-1) is a merge vertex</li>
+            <li style="padding-left: 30px">2. <b>then</b> Insert the diagonal connecting vi to helper(ei-1) in D.</li>
+            <li>3. Delete ei-1 from T.</li>
+        </ul>
+
+        <ul id="splitV" style="display: none" class="subPseudocode">
+            <li>
+                <b>HANDLESPLITVERTEX(vi)</b>
+            </li>
+            <li>1. Search in T to find the edge e j directly left of vi.</li>
+            <li>2. Insert the diagonal connecting vi to helper(e j) in D.</li>
+            <li>3. helper(ej) <- vi</li>
+            <li>4. Insert ei in T and set helper(ei) to vi.</li>
+        </ul>
+
+        <ul id="mergeV" style="display: none" class="subPseudocode">
+            <li>
+                <b>HANDLEMERGEVERTEX(vi)</b>
+            </li>
+            <li>1. <b>if</b> helper(ei-1) is a merge vertex</li>
+            <li style="padding-left: 30px">2. <b>then</b> Insert the diagonal connecting vi to helper(ei-1) in D.</li>
+            <li>3. Delete ei-1 from T.</li>
+            <li>4. Search in T to find the edge ej directly left of vi.</li>
+            <li>5. <b>if</b> helper(ej) is a merge vertex</li>
+            <li style="padding-left: 30px">6. <b>then</b> Insert the diagonal connecting vi to helper(ej) in D.</li>
+            <li>7. helper(ej) <- vi</li>
+        </ul>
+
+        <ul id="regularV" style="display: none" class="subPseudocode">
+            <li>
+                <b>HANDLEREGULARVERTEX(vi)</b>
+            </li>
+            <li>1. <b>if</b> the interior of P lies to the right of vi</li>
+            <li style="padding-left: 30px">2. <b>then if</b> helper(ei-1) is a merge vertex</li>
+            <li style="padding-left: 60px">3. <b>then</b> Insert the diagonal connecting vi to helper(ei-1) in D.</li>
+            <li style="padding-left: 30px">4. Delete ei-1 from T.</li>
+            <li style="padding-left: 30px">5. Insert ei in T and set helper(ei) to vi.</li>
+            <li>6. <b>else</b> Search in T to find the edge ej directly left of vi.</li>
+            <li style="padding-left: 30px">7. <b>if</b> helper(ej) is a merge vertex</li>
+            <li style="padding-left: 60px">8. <b>then</b> Insert the diagonal connecting vi to helper(ej) in D.</li>
+            <li style="padding-left: 30px">9. helper(ej) <- vi</li>
+        </ul>
+
+    </div>
+
+    <aside class="operation">
+        <div class="functions">
+            <input type="file" id="fileInput">
+            <button id="getStarted">Get Started</button>
+        </div>
+
+        <div class="functions">
+            <h2>Monotone Polygons</h2>
+            <div>
+                <button id="pre_mono">Previous</button>
+                <button id="next_mono">Next</button>
+                <button id="skip_mono">Skip</button>
+            </div>
+        </div>
+
+        <div class="functions">
+            <h2>Triangulation</h2>
+            <div>
+                <button id="pre_tri">Previous</button>
+                <button id="next_tri">Next</button>
+                <button id="skip_tri">Skip</button>
+            </div>
+        </div>
+    </aside>
+</div>
+
+<section>
+    <div class="instructions">instructions</div>
+    <div class="display">Display</div>
+</section>
+
+<hr>
+
+<footer>Personal information</footer>
+
+<!-- vertex Shader -->
+<script id="vertex-shader" type="x-shader/x-vertex">
+    attribute vec4 aVertexPosition;
+    attribute vec4 a_color;
+    varying vec4 v_color;
+
+    void main() {
+        // gl_PointSize = 4.0;
+        gl_Position = aVertexPosition;
+        v_color = a_color;
+      }
+
+</script>
+
+<!-- fragment Shader -->
+<script id="fragment-shader" type="x-shader/x-fragment">
+    precision lowp float;
+    varying vec4 v_color;
+
+    void main() {
+        gl_FragColor = v_color;
+        // gl_FragColor = vec4(0.0,0.0,0.0,1.0);
+    }
+
+</script>
+
+<script type="module">
+    // reference resource for opening files:
+    // https://dev.to/g33konaut/reading-local-files-with-javascript-25hn
+
+    import Main from "./JavaScript/Main.js";
+
+    // console.log( document.getElementById( "pseudocode" ).children );
+
+    window.onload = function () {
+        new Main( null );
+
+        document.getElementById( 'fileInput' ).addEventListener( 'change', function () {
+            if ( this.files.length === 0 ) {
+                console.log( 'No file selected.' );
+                return;
+            }
+
+            // console.log( this.files );
+            let reader = new FileReader();
+            let files = this.files[ 0 ];
+            // Main.startProgram( reader, files );
+
+            // console.log( files );
+            reader.readAsText( files );
+            reader.onload = function () {
+                Main.main.whichInput = Main.InputType.FILE;
+                Main.main.fileInput = reader.result;
+                // Main.main.doTheAlgorithm();
+            };
+        } );
+    };
+
+</script>
+
+</body>
+</html>

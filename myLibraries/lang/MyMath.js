@@ -14,6 +14,7 @@
  *     $1.4 add quadrant() on 5/14/2021$
  *     $1.5 add doubleCompare() and isSameSign() on 7/8/2021$
  *     $1.6 add radians(), degrees() and equalsVector3() on 9/16/2021$
+ *     $1.6 add randomInRange(), equalsQuaternion() on 11/16/2021$
  */
 
 /**
@@ -28,6 +29,17 @@
 export default class MyMath {
     static EPSILON = 0.00000001; // 1e-8
     static PI = Math.PI;
+
+    /**
+     * get a number lies in range [min, max]
+     *
+     * @param min minimum
+     * @param max maximum
+     * @returns {Number} a number lies in range [min, max]
+     */
+    static randomInRange( min, max ) {
+        return Math.random() * ( max - min ) + min;
+    }
 
     /**
      * equals Quaternion, without floating number precision problem
