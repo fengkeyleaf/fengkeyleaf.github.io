@@ -50,7 +50,7 @@ export default class Main {
     static PATTERN_START_END_POINT = "^-*\\d+ -*\\d+ -*\\d+ -*\\d+$";
     // global variable for the whole program
     static main = null;
-    static animateTime = 1500;
+    static animateTime = 2500;
 
     // test data
     static data = new Float32Array(

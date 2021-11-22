@@ -240,8 +240,9 @@ export default class SnapShot {
             if ( elements.isEmpty() ) return;
 
             let i = 0;
-            let time = ( SnapShot.animationTime * 2 + 200 ) / elements.length;
+            let time = ( SnapShot.animationTime * 4 ) / elements.length;
             time = time < 200 ? 200 : time; // min: 200 ms
+            time = time > 400 ? 400 : time // max: 400 ms
 
             function start() {
                 return new Promise( function ( resolve, reject ) {
