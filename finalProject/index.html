@@ -7,8 +7,7 @@
 
     <script type="text/javascript" src="../myLibraries/lang/MyString.js"></script>
     <script type="text/javascript" src="../myLibraries/lang/MyArray.js"></script>
-    <script type="text/javascript" src="https://threejs.org/build/three.js"></script>
-<!--    <script type="text/javascript" src="http://www.yanhuangxueyuan.com/versions/threejsR92/build/three.js"></script>-->
+    <script type="text/javascript" src="http://www.yanhuangxueyuan.com/versions/threejsR92/build/three.js"></script>
 
     <!--import test models-->
     <!--    <script type="module" src="./JavaScript/Test.js"></script>-->
@@ -138,6 +137,11 @@
     <aside class="operation">
         <div class="functions">
             <input type="file" id="fileInput">
+            <select id="examples">
+                <option value="simple">Simple Example</option>
+                <option value="complex">Complex Example</option>
+                <option value="maze">Maze Example</option>
+            </select>
             <button id="getStarted">Get Started</button>
         </div>
 
@@ -203,17 +207,21 @@
     import Main from "./JavaScript/Main.js";
 
     // console.log( document.getElementById( "pseudocode" ).children );
+    // console.log( document.getElementsByTagName( "input" ) );
 
     window.onload = function () {
-        new Main( null );
+        new Main();
 
-        document.getElementById( 'fileInput' ).addEventListener( 'change', function () {
+        console.log(Main.main);
+        let input = document.getElementById( 'fileInput' );
+        input.addEventListener( 'change', function () {
             if ( this.files.length === 0 ) {
                 console.log( 'No file selected.' );
+                Main.main.fileInput = null;
                 return;
             }
 
-            // console.log( this.files );
+            console.log( this.files );
             let reader = new FileReader();
             let files = this.files[ 0 ];
             // Main.startProgram( reader, files );
@@ -221,10 +229,17 @@
             // console.log( files );
             reader.readAsText( files );
             reader.onload = function () {
-                Main.main.whichInput = Main.InputType.FILE;
                 Main.main.fileInput = reader.result;
                 // Main.main.doTheAlgorithm();
             };
+        } );
+
+        input.addEventListener( "click", function () {
+            // Main.main.drawer.reset();
+            // if ( Main.main.buttons.getStarted.innerText === "Reset" )
+            //     Main.main.buttons.getStarted.onclick();
+
+            Main.main.whichInput = Main.InputType.FILE;
         } );
     };
 

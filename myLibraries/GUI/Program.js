@@ -10,14 +10,13 @@
  *     $1.0$
  */
 
-import MyMath from "../lang/MyMath.js";
-import DCEL from "../util/geometry/DCEL/DCEL.js";
-import Drawer from "./geometry/Drawer.js";
 import MonotoneVertex from "../util/geometry/DCEL/MonotoneVertex.js";
 import Main from "../../finalProject/JavaScript/Main.js";
 import Vertex from "../util/geometry/DCEL/Vertex.js";
 import Circle from "../util/geometry/elements/cycle/Circle.js";
 import Vector from "../util/geometry/elements/point/Vector.js";
+import Triangles from "../util/geometry/tools/Triangles.js";
+import Drawer from "./geometry/Drawer.js";
 
 /**
  *
@@ -33,7 +32,7 @@ import Vector from "../util/geometry/elements/point/Vector.js";
 export default class Program {
     // console.log( gl.TRIANGLE_FAN, gl.LINE_STRIP, gl.LINE_LOOP ); // 6 3 2
     static LINE_LOOP = 2;
-    // static LINE_STRIP = 3;
+    static LINE_STRIP = 3;
     static TRIANGLE_FAN = 6;
 
     constructor( paras ) {
@@ -57,7 +56,7 @@ export default class Program {
         this.triangulationColors = null;
 
         this.__initWebGl( paras );
-        this.__addCanvasEvents();
+        this.addCanvasEvents();
     }
 
     static __check( paras ) {
@@ -100,67 +99,96 @@ export default class Program {
         this.__initProgram( paras );
     }
 
-    __addCanvasEvents() {
+    static canvasClickEvent = function add( event ) {
+        Main.main.whichInput = Main.InputType.CANVAS;
+        let vertices = Main.main.vertices;
+        let x = event.offsetX;
+        let y = event.offsetY;
+
+        // console.log( x, y );
+        // coordinate of a widget, assume width = height = 600
+        //              0
+        //
+        //
+        // 0            300             600 ( x )
+        //
+        //
+        //              600( y )
+        let vertex = new Vector( x, y, -1 );
+        // ignore duplicate points
+        if ( !vertices.isEmpty() && vertices.getLast().equalsXAndY( vertex ) ) return;
+
+        // coordinate of the webgl canvas
+        //                          1( y, 300 )
+        //
+        //
+        // -1( x, -300 )            0                    1 ( x, 600 )
+        //
+        //
+        //                          -1( y, -300 )
+        let halfWidth = Main.main.originalWidth;
+        let halfHeight = Main.main.originalHeight;
+        // console.log( Main.main.originalWidth, Main.main.originalHeight );
+
+        let xCal = vertex.x >= halfWidth ? vertex.x - halfWidth : vertex.x - halfWidth;
+        let yCal = vertex.y >= halfHeight ? vertex.y - halfHeight : vertex.y - halfHeight;
+        // The coordinate of a widget is much like that of Java GUI,
+        // so we need to flip y
+        vertices.push( new MonotoneVertex( xCal, -yCal ) );
+
+        // must drawing counter-clock wise
+        if ( vertices.length > 2 &&
+            !Triangles.toLeft( vertices[ vertices.length - 3 ], vertices[ vertices.length - 2 ], vertices[ vertices.length - 1 ] ) ) {
+            vertices.pop();
+            alert( "Must drawing counter-clock wise!" );
+            return;
+        }
+
+        // points lie in the range of [ 0. 2 ],
+        // then minus 1, they lie in the range of [ -1, 1 ],
+        // just the same range that webgl requires
+        // note that we could use this result to get points for calculating those polygons:
+        // xCal = xCanvas * halfWidth,
+        // this is correct, but will introduce precision issue,
+        // since we use division.
+        // So this method is not recommended to compute actual polygon vertices
+        // Further, the previous method can calculate points drawn in the webgl,
+        // but I leave both approaches for your guys.
+        let xCanvas = vertex.x / halfWidth - 1;
+        let yCanvas = -(vertex.y / halfHeight - 1);
+        let { points, colors } = new Circle( {
+            center: new Vertex( xCanvas, yCanvas ),
+            radius: 0.01,
+            color: Vertex.NORMAL_COLOR
+        } ).getPoints();
+        // console.log( vertex, new Vertex( xCanvas, -yCanvas ), vertices.getLast() );
+        let lastDraw = Main.pop();
+        console.assert( lastDraw.length === 3 || lastDraw.length === 0 );
+        // push drawing data for points
+        Main.main.pushData( new Float32Array( points ), new Float32Array( colors ), Program.TRIANGLE_FAN );
+
+        // push drawing data for edges(lines),
+        // we also put the drawing data of edges at the end of those drawing data arrays
+        let linePoints = lastDraw.isEmpty() ? new Float32Array( [] ) : lastDraw[ 0 ];
+        linePoints = linePoints.push( xCanvas, yCanvas )
+        let lineColors = lastDraw.isEmpty() ? new Float32Array( [] ) : lastDraw[ 1 ];
+        lineColors = lineColors.concat( Drawer.black.concat( Drawer.black ) );
+        Main.main.pushData( new Float32Array( linePoints ), new Float32Array( lineColors ), Program.LINE_STRIP );
+
+        Main.main.draw();
+    }
+
+    cancelCanvasEvents() {
+        this.canvas.onclick = null;
+    }
+
+    addCanvasEvents() {
         console.assert( this.canvas != null );
 
         Main.main.originalWidth = this.canvas.width / 2;
         Main.main.originalHeight = this.canvas.height / 2;
-        this.canvas.addEventListener( "click", function ( event ) {
-            Main.main.whichInput = Main.InputType.CANVAS;
-            let vertices = Main.main.vertices;
-            let x = event.offsetX;
-            let y = event.offsetY;
 
-            // coordinate of a widget, assume width = height = 600
-            //              0
-            //
-            //
-            // 0            300             600 ( x )
-            //
-            //
-            //              600( y )
-            let vertex = new Vector( x, y, -1 );
-            // ignore duplicate points
-            if ( !vertices.isEmpty() && vertices.getLast().equalsXAndY( vertex ) ) return;
-
-            // coordinate of the webgl canvas
-            //                          1( y, 300 )
-            //
-            //
-            // -1( x, -300 )            0                    1 ( x, 600 )
-            //
-            //
-            //                          -1( y, -300 )
-            let halfWidth = Main.main.originalWidth;
-            let halfHeight = Main.main.originalHeight;
-
-            let xCal = vertex.x >= halfWidth ? vertex.x - halfWidth : vertex.x - halfWidth;
-            let yCal = vertex.y >= halfHeight ? vertex.y - halfHeight : vertex.y - halfHeight;
-            // The coordinate of a widget is much like that of Java GUI,
-            // so we need to flip y
-            vertices.push( new MonotoneVertex( xCal, -yCal ) );
-
-            // points lie in the range of [ 0. 2 ],
-            // then minus 1, they lie in the range of [ -1, 1 ],
-            // just the same range that webgl requires
-            // note that we could use this result to get points for calculating those polygons:
-            // xCal = xCanvas * halfWidth,
-            // this is correct, but will introduce precision issue,
-            // since we use division.
-            // So this method is not recommended to compute actual polygon vertices
-            // Further, the previous method can calculate points drawn in the webgl,
-            // but I leave both approaches for your guys.
-            let xCanvas = vertex.x / halfWidth - 1;
-            let yCanvas = vertex.y / halfHeight - 1;
-            let { points, colors } = new Circle( {
-                center: new Vertex( xCanvas, -yCanvas ),
-                radius: 0.01,
-                color: Vertex.NORMAL_COLOR
-            } ).getPoints();
-            // console.log( vertex, new Vertex( xCanvas, -yCanvas ), vertices.getLast() );
-            Main.main.pushData( new Float32Array( points ), new Float32Array( colors ), Program.TRIANGLE_FAN );
-            Main.main.draw();
-        } );
+        this.canvas.onclick = Program.canvasClickEvent;
     }
 
     /**
@@ -190,6 +218,8 @@ export default class Program {
         this.program.aColor = this.gl.getAttribLocation( this.program, paras.aColor );
         // this.program.aBary = this.gl.getAttribLocation( this.program, 'bary' );
         // this.program.uTheta = this.gl.getUniformLocation( this.program, 'theta' );
+
+        // console.log( this.gl.TRIANGLE_FAN, this.gl.LINE_STRIP, this.gl.LINE_LOOP ); // 6 3 2
     }
 
     /**
@@ -224,6 +254,16 @@ export default class Program {
         return shader;
     }
 
+    reset() {
+        // Clear the scene
+        this.gl.clear( this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT );
+        this.gl.viewport( 0, 0, this.gl.canvas.width, this.gl.canvas.height );
+
+        // Clean
+        this.gl.bindVertexArray( null );
+        this.gl.bindBuffer( this.gl.ARRAY_BUFFER, null );
+    }
+
     /**
      * @param {[Float32Array]} points points
      * @param {[Float32Array]} colors colors
@@ -231,7 +271,7 @@ export default class Program {
      */
 
     draw( points, colors, drawingTypes ) {
-        // console.log( points, colors, drawingTypes );
+        console.log( points, colors, drawingTypes );
         console.assert( points.length === colors.length, points, colors );
         console.assert( points.length === drawingTypes.length, points, drawingTypes );
 
@@ -263,9 +303,17 @@ export default class Program {
 
             // starting drawing
             // console.log( points.length );
-            let n = drawingTypes[ i ] === 2 ? points[ i ].length / 2 : 38;
-            console.assert( drawingTypes[ i ] === 6 || drawingTypes[ i ] === 2 && points[ i ].length % 2 === 0, drawingTypes );
-            console.assert( drawingTypes[ i ] === 2 || ( drawingTypes[ i ] === 6 && points[ i ].length === 76 ), drawingTypes[ i ], points[ i ] );
+            let n = -1;
+            switch ( drawingTypes[ i ] ) {
+                case Program.TRIANGLE_FAN:
+                    n = 38;
+                    break;
+                case Program.LINE_LOOP:
+                case Program.LINE_STRIP:
+                    n = points[ i ].length / 2
+            }
+            console.assert( drawingTypes[ i ] === 6 || ( drawingTypes[ i ] === 3 || drawingTypes[ i ] === 2 && points[ i ].length % 2 === 0 ), drawingTypes );
+            console.assert( ( drawingTypes[ i ] === 3 || drawingTypes[ i ] === 2 ) || ( drawingTypes[ i ] === 6 && points[ i ].length === 76 ), drawingTypes[ i ], points[ i ] );
             // console.log( drawingTypes[ i ] !== 2 || ( drawingTypes[ i ] === 6 && points[ i ].length === 38 ) );
             // console.log( drawingTypes[ i ], n );
             this.gl.drawArrays( drawingTypes[ i ], 0, n );

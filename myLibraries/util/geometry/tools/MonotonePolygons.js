@@ -427,6 +427,9 @@ export default class MonotonePolygons {
         const faces = [];
         if ( monotonePolygon == null ) return faces;
 
+        // get drawing data for this monotone polygon
+        let { points, colors } = Drawer.drawPolygons( [ monotonePolygon ], [ Drawer.grey ] );
+
         // Merge the vertices on the left chain and the vertices on the right chain of P
         // into one sequence, sorted on decreasing y-coordinate. If two vertices have
         // the same y-coordinate, then the leftmost one comes first. Let u1, . . . ,un
@@ -438,15 +441,16 @@ export default class MonotonePolygons {
         // and add the first two snapshots,
         let stack = new Stack();
         // push u1
-        let snapshot = SnapShot.addSnapshot( sortedEdges[ len - 1 ].origin ).addStack( stack.array );
+        let snapshots = [];
+        snapshots.push( SnapShot.addSnapshot( sortedEdges[ len - 1 ].origin ).addStack( stack.array ) );
         stack.push( sortedEdges[ len - 1 ] );
         // load main pseudocode animation
-        snapshot.setMainPse( Main.main.triPse );
-        snapshot.addMainPseIndices( 1, 2 );
+        snapshots.getLast().setMainPse( Main.main.triPse );
+        snapshots.getLast().addMainPseIndices( 1, 2 );
         // push u2
-        snapshot = SnapShot.addSnapshot( sortedEdges[ len - 2 ].origin ).addStack( stack.array );
-        snapshot.setMainPse( Main.main.triPse );
-        snapshot.addMainPseIndices( 2 );
+        snapshots.push( SnapShot.addSnapshot( sortedEdges[ len - 2 ].origin ).addStack( stack.array ) );
+        snapshots.getLast().setMainPse( Main.main.triPse );
+        snapshots.getLast().addMainPseIndices( 2 );
         stack.push( sortedEdges[ len - 2 ] );
 
         // for j←3 to n−1
@@ -454,9 +458,9 @@ export default class MonotonePolygons {
         for ( let i = len - 3; i > 0; i-- ) {
             edge = sortedEdges[ i ];
             // add snapshot for this vertex
-            snapshot = snapshot = SnapShot.addSnapshot( edge.origin ).addStack( stack.array );
-            snapshot.setMainPse( Main.main.triPse );
-            snapshot.addMainPseIndices( 3, 4 );
+            snapshots.push( SnapShot.addSnapshot( edge.origin ).addStack( stack.array ) );
+            snapshots.getLast().setMainPse( Main.main.triPse );
+            snapshots.getLast().addMainPseIndices( 3, 4 );
 
             // 	do if uj and the vertex on top of S are on different chains
             if ( edge.isOnTheDifferentChain( stack.peek() ) ) {
@@ -474,7 +478,7 @@ export default class MonotonePolygons {
                 stack.push( edge );
 
                 // load triangulation pseudocode animation
-                snapshot.addMainPseIndices( 5, 6, 7 );
+                snapshots.getLast().addMainPseIndices( 5, 6, 7 );
             } else {
                 // else Pop one vertex from S.
                 let prev = stack.pop();
@@ -512,7 +516,7 @@ export default class MonotonePolygons {
                 stack.push( edge );
 
                 // load triangulation pseudocode animation
-                snapshot.addMainPseIndices( 8, 9, 10 );
+                snapshots.getLast().addMainPseIndices( 8, 9, 10 );
             }
         }
 
@@ -521,7 +525,7 @@ export default class MonotonePolygons {
         edge = sortedEdges[ 0 ];
 
         // add last snapshot for the last vertex
-        snapshot = SnapShot.addSnapshot( edge.origin ).addStack( stack.array );
+        snapshots.push( SnapShot.addSnapshot( edge.origin ).addStack( stack.array ) );
         // SnapShot.addSnapshot( edge.origin ).addStack( stack.array ).isEndOfThisMonotone = true;
 
         stack.pop();
@@ -530,8 +534,13 @@ export default class MonotonePolygons {
                 stack.pop().origin, faces );
         }
         // load triangulation pseudocode animation
-        snapshot.setMainPse( Main.main.triPse );
-        snapshot.addMainPseIndices( 11 );
+        snapshots.getLast().setMainPse( Main.main.triPse );
+        snapshots.getLast().addMainPseIndices( 11 );
+
+        // load the drawing data of this monotone polygon for each snapshot
+        snapshots.forEach( s => {
+            s.addMonotone( new Float32Array( points ), new Float32Array( colors ) );
+        } );
 
         return faces;
     }

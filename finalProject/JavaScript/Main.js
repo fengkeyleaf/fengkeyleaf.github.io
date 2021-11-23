@@ -20,6 +20,7 @@ import Drawer from "../../myLibraries/GUI/geometry/Drawer.js";
 import SnapShot from "../../myLibraries/GUI/geometry/SnapShot.js";
 import Stack from "../../myLibraries/util/Stack.js";
 import Vertex from "../../myLibraries/util/geometry/DCEL/Vertex.js";
+import Button from "./Button.js";
 
 /**
  * Main entry class
@@ -31,18 +32,12 @@ import Vertex from "../../myLibraries/util/geometry/DCEL/Vertex.js";
  */
 
 // necessary
-// TODO: 9/28/2021 pseudocode, animation timing is not right
-// TODO: 9/26/2021 triangulation assuming partitioning monotone polygons have been done, reset the status of snapshot stack when manipulating other stack
-// TODO: 11/17/2021 reset animation status, getStarted button -> reset button
-// TODO: 11/18/2021 which monotone polygon is being triangulated
 
 // extra
-// TODO: 9/26/2021 adding points with cursors, as well as drawing line connecting two consecutive points
-// TODO: 11/18/2021 delete points with the right cursor
 // TODO: 11/19/2021 show hints when cursors hovering over the canvas
 // TODO: 11/17/2021 provide three examples for users to select, simple, complex and maze
 // TODO: 11/17/2021 switch between the three ways to import input data, run the last one before clicking getStarted button
-// TODO: 11/19/2021 change CSS of buttons when cursors hovering over the canvas
+// TODO: 11/23/2021 multi-clicks
 // TODO: 9/28/2021 not prefect for skip animation, hard-code timing is not very good, though....
 // TODO: 9/28/2021 easy-in, easy out
 
@@ -50,7 +45,7 @@ export default class Main {
     static PATTERN_START_END_POINT = "^-*\\d+ -*\\d+ -*\\d+ -*\\d+$";
     // global variable for the whole program
     static main = null;
-    static animateTime = 2500;
+    static animateTime = 2500; // ms
 
     // test data
     static data = new Float32Array(
@@ -82,13 +77,37 @@ export default class Main {
         "-2 1\n" +
         "1 -1";
 
+    static complexExample = "// s\n" +
+        "// 1\n" +
+        "// e\n" +
+        "-2 -9 0 7\n" +
+        "15\n" +
+        "12 12\n" +
+        "7 -3\n" +
+        "4 2\n" +
+        "-1 1\n" +
+        "0 7\n" +
+        "-3 3\n" +
+        "-6 4\n" +
+        "-8 2\n" +
+        "-7 -3\n" +
+        "-5 -1\n" +
+        "-4 -4\n" +
+        "-5 -6\n" +
+        "-2 -9\n" +
+        "1 -7\n" +
+        "3 -8\n" +
+        "4 -2";
+
+    static mazeExample = "";
+
     static InputType = {
         FILE: 0,
         CANVAS: 1,
         EXAMPLE: 2
     }
 
-    constructor( fileInput ) {
+    constructor( fileInput = Main.simpleExample ) {
         Main.main = this;
 
         // input data
@@ -96,6 +115,8 @@ export default class Main {
         this.vertices = [];
         this.startPoint = null;
         this.endPoint = null;
+
+        this.buttons = new Button();
 
         // original window ratio of the imported data
         this.originalWidth = null;
@@ -112,17 +133,6 @@ export default class Main {
 
         this.whichInput = Main.InputType.EXAMPLE;
 
-        // bottons
-        this.getStarted = null;
-
-        this.buttonNextMono = null;
-        this.buttonPreMono = null;
-        this.buttonSkipMono = null;
-
-        this.buttonNextTri = null;
-        this.buttonPreTri = null;
-        this.buttonSkipTri = null;
-
         // Monotone Polygons
         this.snapshotsCurrent = new Stack();
         this.snapshotsNext = new Stack();
@@ -133,7 +143,6 @@ export default class Main {
         this.snapshots = [];
         this.currentSnapshot = null;
         this.preSnapshot = null;
-        this.countMono = 0;
 
         // time stamp
         this.initializingDate = null;
@@ -158,7 +167,8 @@ export default class Main {
         this.regularV = null;
 
         this.__getPseElements();
-        this.__addEvents();
+        // deal with keypress
+        window.addEventListener( 'keydown', Main.gotKey, false );
     }
 
     // program entry for testing
@@ -170,17 +180,58 @@ export default class Main {
         };
     }
 
+    static gotKey( event ) {
+        console.log( event );
+        switch ( event.keyCode ) {
+            case 8:
+                Main.main.vertices.pop();
+                Main.pop();
+
+                Main.main.draw();
+        }
+    }
+
     /**
      * @param {Number} times
      * @param {Number} increment
      */
 
-    static pop( times, increment ) {
+    static pop( times= 1, increment= 1 ) {
+        let res = [];
+        if ( Main.main.allDrawingPoints.isEmpty() ) return res;
+
+        console.assert( Main.main.allDrawingPoints.length === Main.main.allDrawingColors.length );
+        console.assert( Main.main.allDrawingColors.length === Main.main.allDrawingTypes.length );
+
+
         for ( let i = 0; i < times; i += increment ) {
-            Main.main.allDrawingPoints.pop();
-            Main.main.allDrawingColors.pop();
-            Main.main.allDrawingTypes.pop();
+            res.push(Main.main.allDrawingPoints.pop());
+            res.push(Main.main.allDrawingColors.pop());
+            res.push(Main.main.allDrawingTypes.pop());
         }
+
+        return res;
+    }
+
+    /**
+     * @param {Float32Array} points
+     * @param {Float32Array} colors
+     * @param {Number} drawingTypes
+     */
+
+    pushData( points, colors, drawingTypes ) {
+        this.allDrawingPoints.push( points );
+        this.allDrawingColors.push( colors );
+        this.allDrawingTypes.push( drawingTypes );
+    }
+
+    draw() {
+        if ( this.allDrawingPoints.isEmpty() ) {
+            this.drawer.reset();
+            return;
+        }
+
+        this.drawer.draw( this.allDrawingPoints, this.allDrawingColors, this.allDrawingTypes );
     }
 
     __getPseElements() {
@@ -201,146 +252,70 @@ export default class Main {
     }
 
     reset() {
+        this.currentSnapshot.__hidden();
+
+        this.__resetInputData();
+        this.__setSnapshots();
+        this.__resetSnapshotStacks();
+        this.resetDrawingData();
+        // clear the canvas
+        this.drawer.reset();
+        // pseudocode for mono should be visible
+        this.monoPse.style.display = "block";
+    }
+
+    __resetInputData() {
+        // this.fileInput = null;
+        this.vertices = [];
+        this.startPoint = null;
+        this.endPoint = null;
+        this.whichInput = Main.InputType.EXAMPLE;
+    }
+
+    __resetSnapshotStacks() {
+        this.snapshots = [];
+        this.snapshotsCurrent.clear();
+        this.snapshotsNext.clear();
+        this.snapshotsCurrentTri.clear();
+        this.snapshotsNextTri.clear();
+    }
+
+    resetDrawingData() {
         this.allDrawingPoints = [];
         this.allDrawingColors = [];
         this.allDrawingTypes = [];
     }
 
     /**
-     * @param {Float32Array} points
-     * @param {Float32Array} colors
-     * @param {Number} drawingTypes
+     * @param {SnapShot} pre
+     * @param {SnapShot} next
      */
 
-    pushData( points, colors, drawingTypes ) {
-        this.allDrawingPoints.push( points );
-        this.allDrawingColors.push( colors );
-        this.allDrawingTypes.push( drawingTypes );
+    __setSnapshots( pre = null, next = null ) {
+        this.preSnapshot = pre;
+        this.currentSnapshot = next;
     }
 
-    draw() {
-        this.drawer.draw( this.allDrawingPoints, this.allDrawingColors, this.allDrawingTypes );
+    resetMonoSnapshots() {
+        this.resetDrawingData();
+        this.currentSnapshot.__hidden();
+        this.__setSnapshots();
+
+        Stack.pushAll( this.snapshotsCurrent, this.snapshotsNext );
+        this.snapshotsCurrent.push( this.snapshotsNext.pop() );
+        this.snapshotsCurrent.peek().draw();
+        this.snapshotsCurrent.peek().highlightPse();
     }
 
-    __addMonoToneEvents() {
-        // related functions for mono
-        function nextMono() {
-            if ( Main.main.snapshotsNext.size() > 0 ) {
-                console.log( "next" );
-                Main.main.snapshotsCurrent.push( Main.main.snapshotsNext.pop() );
-                Main.main.snapshotsCurrent.peek().draw();
-                return true;
-            }
-            return false;
-        }
+    resetTriSnapshots() {
+        this.resetDrawingData();
+        this.currentSnapshot.__hidden();
 
-        // Monotone Polygons
-        this.buttonPreMono = document.getElementById( "pre_mono" );
-        this.buttonPreMono.addEventListener( "click", function () {
-            if ( Main.main.snapshotsCurrent.size() > 1 ) {
-                console.log( "pre" );
-                Main.main.snapshotsNext.push( Main.main.snapshotsCurrent.pop() );
-                Main.main.snapshotsCurrent.peek().draw();
-            }
-        } );
+        Stack.pushAll( this.snapshotsNext, this.snapshotsCurrent );
+        this.__setSnapshots( this.snapshotsCurrent.array[ this.snapshotsCurrent.array.length - 2 ], this.snapshotsCurrent.peek() );
+        this.snapshotsCurrent.peek().draw();
 
-        this.buttonNextMono = document.getElementById( "next_mono" );
-        this.buttonNextMono.addEventListener( "click", nextMono );
-
-        this.buttonSkipMono = document.getElementById( "skip_mono" );
-        this.buttonSkipMono.addEventListener( "click", function () {
-            // draw all the next snapshots
-            function skipMono() {
-                return new Promise( function ( resolve, reject ) {
-                    resolve = skipNext;
-                    reject = console.log;
-                    nextMono() ? setTimeout( resolve, Main.animateTime ) : reject( "Skipped Mono" );
-                } );
-            }
-
-            function skipNext() {
-                return new Promise( function ( resolve, reject ) {
-                    resolve = skipMono;
-                    reject = console.log;
-                    nextMono() ? setTimeout( resolve, Main.animateTime ) : reject( "Skipped Mono" );
-                } );
-            }
-
-            skipMono().then( null, null );
-        } );
-    }
-
-    __addTriEvents() {
-        // related functions for Tri
-        function nextTri() {
-            if ( Main.main.snapshotsNextTri.size() > 0 ) {
-                console.log( "tri next" );
-                Main.main.snapshotsCurrentTri.push( Main.main.snapshotsNextTri.pop() );
-                Main.main.snapshotsCurrentTri.peek().draw();
-                return true;
-            }
-            return false;
-        }
-
-        // Triangulation
-        this.buttonPreTri = document.getElementById( "pre_tri" );
-        this.buttonPreTri.addEventListener( "click", function () {
-            if ( Main.main.snapshotsCurrentTri.size() > 1 ) {
-                console.log( "tri pre" );
-                Main.main.snapshotsNextTri.push( Main.main.snapshotsCurrentTri.pop() );
-                Main.main.snapshotsCurrentTri.peek().draw();
-            }
-            // Main.main.drawer.draw( Main.main.drawer.polygonsPoints );
-        } );
-
-        this.buttonNextTri = document.getElementById( "next_tri" );
-        this.buttonNextTri.addEventListener( "click", nextTri );
-
-        this.buttonSkipTri = document.getElementById( "skip_tri" );
-        this.buttonSkipTri.addEventListener( "click", function () {
-            function skipTri() {
-                return new Promise( function ( resolve, reject ) {
-                    resolve = skipNextTri;
-                    reject = console.log;
-                    nextTri() ? setTimeout( resolve, Main.animateTime ) : reject( "Skipped Tri" );
-                } );
-            }
-
-            function skipNextTri() {
-                return new Promise( function ( resolve, reject ) {
-                    resolve = skipTri;
-                    reject = console.log;
-                    nextTri() ? setTimeout( resolve, Main.animateTime ) : reject( "Skipped Tri" );
-                } );
-            }
-
-            skipTri().then( null, null );
-        } );
-    }
-
-    __addGetStartedEvents() {
-        this.getStarted = document.getElementById( "getStarted" );
-        this.getStarted.addEventListener( "click", function () {
-            let program = Main.main;
-            switch ( program.whichInput ) {
-                case Main.InputType.EXAMPLE:
-                case Main.InputType.FILE:
-                    if ( program.fileInput == null ) {
-                        alert( "No file imported!" );
-                        return;
-                    }
-                    program.__processingFile();
-                case Main.InputType.CANVAS:
-                    program.reset();
-                    program.doTheAlgorithm();
-            }
-        } );
-    }
-
-    __addEvents() {
-        this.__addMonoToneEvents();
-        this.__addTriEvents();
-        this.__addGetStartedEvents();
+        Stack.pushAll( this.snapshotsCurrentTri, this.snapshotsNextTri );
     }
 
     __readInfo( initializeLength, info ) {
@@ -420,7 +395,7 @@ export default class Main {
         MonotonePolygons.getVertexType( faces[ 1 ] );
 
         // set points for the original polygon
-        let fragmentData = Drawer.drawPolygons( faces );
+        let fragmentData = Drawer.drawPolygons( faces, [ Drawer.black ] );
         // console.log( fragmentData );
         this.drawer.polygonsPoints = new Float32Array( fragmentData.points );
         this.drawer.polygonsColors = new Float32Array( fragmentData.colors );
@@ -444,7 +419,7 @@ export default class Main {
         monotonePolygons = monotonePolygons.concat( faces );
 
         // set points for monotone polygons
-        fragmentData = Drawer.drawPolygons( monotonePolygons );
+        fragmentData = Drawer.drawPolygons( monotonePolygons, [ Drawer.black ] );
         this.drawer.monotonePoints = new Float32Array( fragmentData.points );
         this.drawer.monotoneColors = new Float32Array( fragmentData.colors );
 
@@ -454,7 +429,7 @@ export default class Main {
 
         // set points for triangles after triangulation
         // console.log( triangles );
-        fragmentData = Drawer.drawPolygons( triangles );
+        fragmentData = Drawer.drawPolygons( triangles, [ Drawer.black ] );
         this.drawer.triangulationPoints = new Float32Array( fragmentData.points );
         this.drawer.triangulationColors = new Float32Array( fragmentData.colors );
 

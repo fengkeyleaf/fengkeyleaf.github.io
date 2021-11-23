@@ -109,7 +109,7 @@ export default class HalfEdge {
     static connectHelper( left, right, faces ) {
         if ( this.isAlreadyConnected( left, right ) ) return;
         let { points, colors } = Drawer.drawLines( left, right );
-        Main.main.snapshots.getLast().addDiagonals( new Float32Array(points), new Float32Array( colors ) );
+        Main.main.snapshots.getLast().addDiagonals( new Float32Array( points ), new Float32Array( colors ) );
         // Drawer.addDrawingPoints( left, right );
 
         // create two new halfEdges,

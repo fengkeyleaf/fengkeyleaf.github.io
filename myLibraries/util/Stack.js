@@ -26,6 +26,16 @@ export default class Stack {
         this.array = [];
     }
 
+    /**
+     * @param {Stack} s1
+     * @param {Stack} s2
+     */
+
+    static pushAll( s1, s2 ) {
+        while ( !s1.isEmpty() )
+            s2.push( s1.pop() );
+    }
+
     push( item ) {
         this.array.push( item );
     }
@@ -58,5 +68,9 @@ export default class Stack {
 
     size() {
         return this.array.length;
+    }
+
+    clear() {
+        this.array = [];
     }
 }

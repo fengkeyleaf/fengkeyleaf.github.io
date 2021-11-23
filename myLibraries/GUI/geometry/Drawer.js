@@ -1,17 +1,17 @@
 "use strict"
 
 import DCEL from "../../util/geometry/DCEL/DCEL.js";
-import MyMath from "../../lang/MyMath.js";
 import SnapShot from "./SnapShot.js";
 import Main from "../../../finalProject/JavaScript/Main.js";
-import Vector from "../../util/geometry/elements/point/Vector.js";
-import Vertex from "../../util/geometry/DCEL/Vertex.js";
 
 export default class Drawer {
     static black = [ 0.0, 0.0, 0.0, 1.0 ];
+    static lightGrey = [ 0.8, 0.8, 0.8, 1 ];
     static grey = [ 0.7, 0.7, 0.7, 1 ];
+    static darkGrey = [ 0.3, 0.3, 0.3, 1 ];
     static aqua = [ 0, 1, 1, 1 ];
     static DeepSkyBlue = [ 0, 191 / 255, 1, 1 ];
+    static red = [ 1, 0, 51 / 255, 1 ]; // #FF0033
 
     /**
      *
@@ -45,9 +45,10 @@ export default class Drawer {
 
     /**
      * @param {[HalfEdge]} edges
+     * @param {[Number]} color
      */
 
-    static getPolygonsPointsByEdges( edges ) {
+    static getPolygonsPointsByEdges( edges, color ) {
         console.assert( edges.length > 2 );
         let points = [];
         let colors = [];
@@ -55,10 +56,10 @@ export default class Drawer {
 
         edges.forEach( edge => {
             Drawer.addPointByVertex( points, edge.origin );
-            colors = colors.concat( black );
+            colors = colors.concat( color );
         } );
         Drawer.addPointByVertex( points, edges[ 0 ].origin );
-        colors = colors.concat( black );
+        colors = colors.concat( color );
         return { points, colors };
     }
 
@@ -73,15 +74,22 @@ export default class Drawer {
         return points;
     };
 
-    static drawPolygons( faces ) {
+    /**
+     * @param {[Face]} faces
+     * @param {[[Number]]} colorsFace
+     */
+
+    static drawPolygons( faces, colorsFace ) {
         let points = [];
         let colors = [];
 
-        for ( let face of faces ) {
+        console.assert( colorsFace.length === 1 || faces.length === colorsFace.length );
+        for ( let i = 0; i < faces.length; i++ ) {
+            let face = faces[ i ];
             if ( face.outComponent == null ) continue;
 
             let edges = DCEL.walkAroundEdgeFace( face );
-            let data = Drawer.getPolygonsPointsByEdges( edges );
+            let data = Drawer.getPolygonsPointsByEdges( edges, colorsFace.length === 1 ? colorsFace[ 0 ] : colorsFace[ i ] );
             points = points.concat( data.points );
             colors = colors.concat( data.colors );
         }

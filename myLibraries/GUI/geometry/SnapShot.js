@@ -52,6 +52,12 @@ export default class SnapShot {
             indicesSub: []
         };
 
+        this.monotone = {
+            points: null,
+            colors: null,
+            drawingType: Program.LINE_LOOP
+        };
+
         this.ID = SnapShot.IDStatic++;
     }
 
@@ -136,6 +142,18 @@ export default class SnapShot {
         console.assert( colors != null );
         this.currentVertex.points = vertex;
         this.currentVertex.colors = colors;
+    }
+
+    /**
+     * @param {Float32Array} vertex
+     * @param {Float32Array} colors
+     */
+
+    addMonotone( vertex, colors ) {
+        console.assert( vertex != null );
+        console.assert( colors != null );
+        this.monotone.points = vertex;
+        this.monotone.colors = colors;
     }
 
     /**
@@ -244,6 +262,7 @@ export default class SnapShot {
             time = time < 200 ? 200 : time; // min: 200 ms
             time = time > 400 ? 400 : time // max: 400 ms
 
+            // closure
             function start() {
                 return new Promise( function ( resolve, reject ) {
                     resolve = next;
@@ -302,7 +321,7 @@ export default class SnapShot {
         }
 
         // reset drawing data
-        Main.main.reset();
+        Main.main.resetDrawingData();
 
         console.assert( this.polygons.points );
         // draw the original polygon
@@ -322,18 +341,16 @@ export default class SnapShot {
         // push original polygon's drawing data
         Main.main.pushData( this.polygons.points, this.polygons.colors, this.polygons.drawingType );
 
+        // draw the monotone polygon being triangulating
+        if ( this.monotone.points != null ) {
+            Main.main.pushData( this.monotone.points, this.monotone.colors, this.monotone.drawingType );
+        }
+
         // draw previous stack status
         console.assert( Main.main.preSnapshot.stackPoints.points.length === Main.main.preSnapshot.stackPoints.colors.length );
         for ( let i = 0; i < this.stackPoints.points.length; i++ ) {
             Main.main.pushData( this.stackPoints.points[ i ], this.stackPoints.colors[ i ], this.stackPoints.drawingType[ i ] );
         }
-
-        // if ( !Main.main.preSnapshot.isEndOfThisMonotone ) {
-        //     for ( let i = 0; i < Main.main.preSnapshot.stackPoints.points.length; i++ ) {
-        //         // console.log( "test");
-        //         Main.main.pushData( Main.main.preSnapshot.stackPoints.points[ i ], Main.main.preSnapshot.stackPoints.colors[ i ], Main.main.preSnapshot.stackPoints.drawingType[ i ] );
-        //     }
-        // }
 
         // Main.main.drawer.draw( Main.main.allDrawingPoints, Main.main.allDrawingColors, Main.main.allDrawingTypes );
 

@@ -32,6 +32,30 @@ Array.prototype.getFirst = function () {
  * @param {Number} nums
  */
 
-function getFloat32ArrayFromArray( ...nums ) {
+function getFloat32( ...nums ) {
     return new Float32Array( nums );
+}
+
+/**
+ * @param {Number} nums
+ */
+
+Float32Array.prototype.push = function ( ...num ) {
+    let res = [];
+    this.forEach( n => res.push( n ) );
+    return new Float32Array( res.concat( num ) );
+}
+
+/**
+ * @param {[Number]} nums
+ */
+
+Float32Array.prototype.concat = function ( ...nums ) {
+    let res = [];
+    this.forEach( n => res.push( n ) );
+    for ( const num of nums ) {
+        res = res.concat( num );
+    }
+
+    return new Float32Array( res );
 }
