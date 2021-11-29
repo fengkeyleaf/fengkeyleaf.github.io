@@ -17,6 +17,7 @@ import Circle from "../util/geometry/elements/cycle/Circle.js";
 import Vector from "../util/geometry/elements/point/Vector.js";
 import Triangles from "../util/geometry/tools/Triangles.js";
 import Drawer from "./geometry/Drawer.js";
+import Example from "../../finalProject/JavaScript/Example.js";
 
 /**
  *
@@ -100,6 +101,9 @@ export default class Program {
     }
 
     static canvasClickEvent = function add( event ) {
+        // change instructions for canvas
+        document.getElementById( "instructions" ).innerText = Example.canvasInstructions;
+
         Main.main.whichInput = Main.InputType.CANVAS;
         let vertices = Main.main.vertices;
         let x = event.offsetX;
@@ -137,12 +141,12 @@ export default class Program {
         vertices.push( new MonotoneVertex( xCal, -yCal ) );
 
         // must drawing counter-clock wise
-        if ( vertices.length > 2 &&
-            !Triangles.toLeft( vertices[ vertices.length - 3 ], vertices[ vertices.length - 2 ], vertices[ vertices.length - 1 ] ) ) {
-            vertices.pop();
-            alert( "Must drawing counter-clock wise!" );
-            return;
-        }
+        // if ( vertices.length > 2 &&
+        //     !Triangles.toLeft( vertices[ vertices.length - 3 ], vertices[ vertices.length - 2 ], vertices[ vertices.length - 1 ] ) ) {
+        //     vertices.pop();
+        //     alert( "Must drawing counter-clock wise!" );
+        //     return;
+        // }
 
         // points lie in the range of [ 0. 2 ],
         // then minus 1, they lie in the range of [ -1, 1 ],
@@ -178,8 +182,18 @@ export default class Program {
         Main.main.draw();
     }
 
+    static showCanvasInstructions() {
+        document.getElementById( "canvasInstructions" ).style.display = "block";
+    }
+
+    static hideCanvasInstructions() {
+        document.getElementById( "canvasInstructions" ).style.display = "none";
+    }
+
     cancelCanvasEvents() {
         this.canvas.onclick = null;
+        this.canvas.onmouseenter = null;
+        this.canvas.onmouseleave = null;
     }
 
     addCanvasEvents() {
@@ -189,6 +203,8 @@ export default class Program {
         Main.main.originalHeight = this.canvas.height / 2;
 
         this.canvas.onclick = Program.canvasClickEvent;
+        this.canvas.onmouseenter = Program.hideCanvasInstructions;
+        this.canvas.onmouseleave = Program.showCanvasInstructions;
     }
 
     /**
@@ -271,7 +287,7 @@ export default class Program {
      */
 
     draw( points, colors, drawingTypes ) {
-        console.log( points, colors, drawingTypes );
+        // console.log( points, colors, drawingTypes );
         console.assert( points.length === colors.length, points, colors );
         console.assert( points.length === drawingTypes.length, points, drawingTypes );
 

@@ -370,7 +370,7 @@ export default class MonotonePolygons {
             let snapshot = SnapShot.addSnapshot( vertex );
             let main = Main.main;
             // load main pseudocode animation
-            snapshot.setMainPse( main.monoPse );
+            snapshot.setMainPse( main.pseudocodeEles.monoPse );
             snapshot.addMainPseIndices( 3, 4, 5 );
 
             // Call the appropriate procedure to handle the vertex, depending on its type.
@@ -378,30 +378,30 @@ export default class MonotonePolygons {
                 case MonotoneVertex.VertexType.START:
                     this.__handleStartVertex( vertex, statusRBTree );
                     // and load sub pseudocode animation for start vertex
-                    snapshot.setSubPse( main.startV );
+                    snapshot.setSubPse( main.pseudocodeEles.startV );
                     snapshot.addSubPseIndices( 1 );
                     break;
                 case MonotoneVertex.VertexType.SPLIT:
                     this.__handleSplitVertex( vertex, statusRBTree, faces );
                     // and load sub pseudocode animation for split vertex
-                    snapshot.setSubPse( main.splitV );
+                    snapshot.setSubPse( main.pseudocodeEles.splitV );
                     snapshot.addSubPseIndices( 1, 2, 3, 4 );
                     break;
                 case MonotoneVertex.VertexType.END:
                     this.__handleEndVertex( vertex, statusRBTree, faces, snapshot );
                     // and load sub pseudocode animation for end vertex
-                    snapshot.setSubPse( main.endV );
+                    snapshot.setSubPse( main.pseudocodeEles.endV );
                     break;
                 case MonotoneVertex.VertexType.MERGE:
                     this.__handleMergeVertex( vertex, statusRBTree, faces, snapshot );
                     // and load sub pseudocode animation for merge vertex
-                    snapshot.setSubPse( main.mergeV );
+                    snapshot.setSubPse( main.pseudocodeEles.mergeV );
                     break;
                 case MonotoneVertex.VertexType.REGULAR_LEFT:
                 case MonotoneVertex.VertexType.REGULAR_RIGHT:
                     this.__handleRegularVertex( vertex, statusRBTree, faces, snapshot );
                     // and load sub pseudocode animation for regular vertex
-                    snapshot.setSubPse( main.regularV );
+                    snapshot.setSubPse( main.pseudocodeEles.regularV );
                     break;
                 default:
                     console.assert( false );
@@ -445,11 +445,12 @@ export default class MonotonePolygons {
         snapshots.push( SnapShot.addSnapshot( sortedEdges[ len - 1 ].origin ).addStack( stack.array ) );
         stack.push( sortedEdges[ len - 1 ] );
         // load main pseudocode animation
-        snapshots.getLast().setMainPse( Main.main.triPse );
+        snapshots.getLast().setMainPse( Main.main.pseudocodeEles.triPse );
         snapshots.getLast().addMainPseIndices( 1, 2 );
+        snapshots.getLast().setIsANewMono( true );
         // push u2
         snapshots.push( SnapShot.addSnapshot( sortedEdges[ len - 2 ].origin ).addStack( stack.array ) );
-        snapshots.getLast().setMainPse( Main.main.triPse );
+        snapshots.getLast().setMainPse( Main.main.pseudocodeEles.triPse );
         snapshots.getLast().addMainPseIndices( 2 );
         stack.push( sortedEdges[ len - 2 ] );
 
@@ -459,7 +460,7 @@ export default class MonotonePolygons {
             edge = sortedEdges[ i ];
             // add snapshot for this vertex
             snapshots.push( SnapShot.addSnapshot( edge.origin ).addStack( stack.array ) );
-            snapshots.getLast().setMainPse( Main.main.triPse );
+            snapshots.getLast().setMainPse( Main.main.pseudocodeEles.triPse );
             snapshots.getLast().addMainPseIndices( 3, 4 );
 
             // 	do if uj and the vertex on top of S are on different chains
@@ -534,7 +535,7 @@ export default class MonotonePolygons {
                 stack.pop().origin, faces );
         }
         // load triangulation pseudocode animation
-        snapshots.getLast().setMainPse( Main.main.triPse );
+        snapshots.getLast().setMainPse( Main.main.pseudocodeEles.triPse );
         snapshots.getLast().addMainPseIndices( 11 );
 
         // load the drawing data of this monotone polygon for each snapshot

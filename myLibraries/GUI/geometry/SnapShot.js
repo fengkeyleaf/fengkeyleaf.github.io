@@ -1,7 +1,16 @@
 "use strict"
 
+/*
+ * SnapShot.js
+ *
+ * Version:
+ *     $1.0$
+ *
+ * Revisions:
+ *     $1.0$
+ */
+
 import Main from "../../../finalProject/JavaScript/Main.js";
-import KeyFraming from "../../animation/KeyFraming.js";
 import Drawer from "./Drawer.js";
 import Lines from "../../util/geometry/tools/Lines.js";
 import MonotoneVertex from "../../util/geometry/DCEL/MonotoneVertex.js";
@@ -9,11 +18,18 @@ import Program from "../Program.js";
 import Circle from "../../util/geometry/elements/cycle/Circle.js";
 import Vertex from "../../util/geometry/DCEL/Vertex.js";
 
+/**
+ * data structure of SnapShot
+ * This class is the key class to implement step-by-step animation
+ *
+ * @author Xiaoyu Tongyang, or call me sora for short
+ */
+
 export default class SnapShot {
     static IDStatic = 0;
     static animationTime = 500;
 
-    constructor( paras ) {
+    constructor() {
         this.polygons = {
             points: null,
             colors: null,
@@ -29,7 +45,8 @@ export default class SnapShot {
         this.sweepLines = {
             points: null,
             colors: null,
-            drawingType: Program.LINE_LOOP
+            drawingType: Program.LINE_LOOP,
+            isNewMonotone: false
         };
 
         this.stackPoints = {
@@ -58,7 +75,24 @@ export default class SnapShot {
             drawingType: Program.LINE_LOOP
         };
 
+        this.isLast = false;
+
         this.ID = SnapShot.IDStatic++;
+    }
+
+    /**
+     * @param {SnapShot} last
+     */
+
+    static getLastSnapshot( last ) {
+        let final = new SnapShot();
+
+        final.polygons = last.polygons;
+        final.diagonals = last.diagonals;
+        final.pseudocode = last.pseudocode;
+        final.isLast = true;
+
+        return final;
     }
 
     /**
@@ -98,6 +132,22 @@ export default class SnapShot {
         this.sweepLines.colors = colors;
     }
 
+    addSweepAtTop() {
+        this.addSweep( SnapShot.getSweepAtTopPoints(), new Float32Array( [].concat( Drawer.DeepSkyBlue, Drawer.DeepSkyBlue ) ) );
+    }
+
+    static getSweepAtTopPoints() {
+        return new Float32Array( [ -1, 1.1, 1, 1.1 ] );
+    }
+
+    /**
+     * @param {Boolean} val
+     */
+
+    setIsANewMono( val ) {
+        this.sweepLines.isNewMonotone = val;
+    }
+
     /**
      * @param {Float32Array} vertex
      * @param {Float32Array} colors
@@ -120,7 +170,8 @@ export default class SnapShot {
         vertices.forEach( edge => {
             let vertex = edge.origin;
             let normalizedVertex = new Vertex( vertex.x / Main.main.originalWidth, vertex.y / Main.main.originalHeight );
-            // console.log(normalizedVertex);
+
+            // get drawing points of the circle
             let { points, colors } = new Circle( {
                 center: normalizedVertex,
                 radius: 0.02,
@@ -233,57 +284,70 @@ export default class SnapShot {
         return i + 1 < elements.length;
     }
 
+    /**
+     * animation pseudocode
+     */
+
     highlightPse() {
         console.log( this );
 
         let main = Main.main;
 
+        // hide previous
         if ( main.preSnapshot != null )
             main.preSnapshot.__hidden();
 
         this.pseudocode.main.style.display = "block";
 
+        // which main code to be highlighted
         let elements = [];
         this.pseudocode.indicesMain.forEach( i => elements.push( this.pseudocode.main.children[ i ] ) );
 
+        // which sub code to be highlighted
         if ( this.pseudocode.sub != null ) {
             this.pseudocode.sub.style.display = "block";
             console.assert( !this.pseudocode.indicesSub.isEmpty() );
             this.pseudocode.indicesSub.forEach( i => elements.push( this.pseudocode.sub.children[ i ] ) );
         }
 
-        selectAnimation( elements );
-
-        function selectAnimation( elements ) {
-            if ( elements.isEmpty() ) return;
-
-            let i = 0;
-            let time = ( SnapShot.animationTime * 4 ) / elements.length;
-            time = time < 200 ? 200 : time; // min: 200 ms
-            time = time > 400 ? 400 : time // max: 400 ms
-
-            // closure
-            function start() {
-                return new Promise( function ( resolve, reject ) {
-                    resolve = next;
-                    reject = console.log;
-                    SnapShot.__select( i++, elements ) ? setTimeout( resolve, time ) : reject( "select done" );
-                } );
-            }
-
-            function next() {
-                return new Promise( function ( resolve, reject ) {
-                    resolve = start;
-                    reject = console.log;
-                    SnapShot.__select( i++, elements ) ? setTimeout( resolve, time ) : reject( "select done" );
-                } );
-            }
-
-            start().then( null, null );
-        }
+        SnapShot.selectAnimation( elements );
     }
 
     /**
+     * @param {[HTMLElement]} elements
+     */
+
+    static selectAnimation = function ( elements ) {
+        if ( elements.isEmpty() ) return;
+
+        let i = 0;
+        let time = ( SnapShot.animationTime * 4 ) / elements.length;
+        time = time < 200 ? 200 : time; // min: 200 ms
+        time = time > 400 ? 400 : time // max: 400 ms
+
+        // closure
+        function start() {
+            return new Promise( function ( resolve, reject ) {
+                resolve = next;
+                reject = console.log;
+                SnapShot.__select( i++, elements ) ? setTimeout( resolve, time ) : reject( "select done" );
+            } );
+        }
+
+        function next() {
+            return new Promise( function ( resolve, reject ) {
+                resolve = start;
+                reject = console.log;
+                SnapShot.__select( i++, elements ) ? setTimeout( resolve, time ) : reject( "select done" );
+            } );
+        }
+
+        start().then( null, null );
+    }
+
+    /**
+     * push all previous diagonal data
+     *
      * @param {Number} len
      * @param {Stack} snapshotsCurrent
      */
@@ -300,12 +364,6 @@ export default class SnapShot {
         }
     }
 
-    __pushPolyData() {
-        Main.main.allDrawingPoints.push( this.polygons.points );
-        Main.main.allDrawingColors.push( this.polygons.colors );
-        Main.main.allDrawingTypes.push( this.polygons.drawingType );
-    }
-
     // polygons -> pre dia -> pre vertices in stack -> sweep -> current vertex -> current dia
     draw() {
         // console.assert( this.current.length === this.currentAnimations.length );
@@ -313,33 +371,44 @@ export default class SnapShot {
 
         // set current and previous snapshot
         // for global use
-        if ( Main.main.currentSnapshot === null )
-            Main.main.currentSnapshot = this;
-        else {
-            Main.main.preSnapshot = Main.main.currentSnapshot;
-            Main.main.currentSnapshot = this;
-        }
+        // if ( Main.main.currentSnapshot === null )
+        //     Main.main.currentSnapshot = this;
+        // else {
+        //     Main.main.preSnapshot = Main.main.currentSnapshot;
+        //     Main.main.currentSnapshot = this;
+        // }
 
         // reset drawing data
         Main.main.resetDrawingData();
+
+        // push original polygon's drawing data
+        Main.main.pushData( this.polygons.points, this.polygons.colors, this.polygons.drawingType );
+
+        // animate pseudocode
+        this.highlightPse();
 
         console.assert( this.polygons.points );
         // draw the original polygon
         if ( Main.main.preSnapshot === null ) {
             console.assert( this.diagonals.points.isEmpty() && this.diagonals.colors.isEmpty() );
-            // this.__pushPolyData();
-
-            Main.main.pushData( this.polygons.points, this.polygons.colors, this.polygons.drawingType );
-            Main.main.drawer.draw( Main.main.allDrawingPoints, Main.main.allDrawingColors, Main.main.allDrawingTypes );
-            // console.log( "No lines" );
+            Main.main.draw();
             return;
         }
 
-        // animate pseudocode
-        this.highlightPse();
+        // draw last step
+        if ( this.isLast ) {
+            // first push monotone's diagonals
+            this.__draw( Main.main.snapshotsCurrent.array.length, Main.main.snapshotsCurrent );
 
-        // push original polygon's drawing data
-        Main.main.pushData( this.polygons.points, this.polygons.colors, this.polygons.drawingType );
+            // then push triangulation's diagonals
+            this.__draw( Main.main.snapshotsCurrentTri.array.length, Main.main.snapshotsCurrentTri );
+
+            Main.main.draw();
+            return;
+        }
+
+        // // animate pseudocode
+        // this.highlightPse();
 
         // draw the monotone polygon being triangulating
         if ( this.monotone.points != null ) {
@@ -351,8 +420,6 @@ export default class SnapShot {
         for ( let i = 0; i < this.stackPoints.points.length; i++ ) {
             Main.main.pushData( this.stackPoints.points[ i ], this.stackPoints.colors[ i ], this.stackPoints.drawingType[ i ] );
         }
-
-        // Main.main.drawer.draw( Main.main.allDrawingPoints, Main.main.allDrawingColors, Main.main.allDrawingTypes );
 
         // draw previous diagonals
         // note that we need to ignore duplicate animation.
@@ -370,7 +437,7 @@ export default class SnapShot {
         console.assert( Main.main.preSnapshot !== null );
 
         // sweep line points and colors
-        let sweepLines = [ Main.main.preSnapshot.sweepLines.points, Main.main.currentSnapshot.sweepLines.points ];
+        let sweepLines = this.sweepLines.isNewMonotone ? [ SnapShot.getSweepAtTopPoints(), Main.main.currentSnapshot.sweepLines.points ] : [ Main.main.preSnapshot.sweepLines.points, Main.main.currentSnapshot.sweepLines.points ];
         let sweepLinesColors = [ Main.main.preSnapshot.sweepLines.colors, Main.main.currentSnapshot.sweepLines.colors ];
 
         // add initializing status of sweep line to drawing data
@@ -379,57 +446,55 @@ export default class SnapShot {
             let startPre = new THREE.Vector3( linePre[ 0 ], linePre[ 1 ], 0 );
             let endPre = new THREE.Vector3( linePre[ 2 ], linePre[ 3 ], 0 );
 
-            let lineCurr = sweepLines[ i + 1 ];
-            let startCurr = new THREE.Vector3( lineCurr[ 0 ], lineCurr[ 1 ], 0 );
-            let endCurr = new THREE.Vector3( lineCurr[ 2 ], lineCurr[ 3 ], 0 );
-
-            Main.main.pushData( new Float32Array( [ startPre.x, startPre.y, endPre.x, endPre.y ] ), sweepLinesColors[ i + 1 ], this.sweepLines.drawingType );
+            let points = new Float32Array( [ startPre.x, startPre.y, endPre.x, endPre.y ] );
+            Main.main.pushData( points, sweepLinesColors[ i + 1 ], this.sweepLines.drawingType );
         }
 
         // reset initializing time
         Main.main.initializingDate = new Date();
 
-        // animate sweep line
-        function animateSweep() {
-            return new Promise( function ( resolve, reject ) {
-                // give enough time for the current animation to finish,
-                // or otherwise will cause double animations for the next one
-                Lines.animateByLine( sweepLines, sweepLinesColors );
-                setTimeout( resolve, SnapShot.animationTime + 50 );
-            } );
-        }
-
         // draw current vertex
-        let animateCurrentVertex = animateSweep().then( () => {
+        let animateCurrentVertex = SnapShot.animateSweep( sweepLines, sweepLinesColors ).then( () => {
             Main.main.pushData( Main.main.currentSnapshot.currentVertex.points, Main.main.currentSnapshot.currentVertex.colors, Main.main.currentSnapshot.currentVertex.drawingType );
             Main.main.drawer.draw( Main.main.allDrawingPoints, Main.main.allDrawingColors, Main.main.allDrawingTypes );
         } );
 
         // animate diagonals
-        let animateCurrentStack = animateCurrentVertex.then( () => {
-            // Main.main.drawer.drawLines( Main.main.allDrawingPoints, Main.main.allDrawingColors );
-            // animate current diagonal
-            if ( this.diagonals.points.isEmpty() ) {
-                console.assert( this.diagonals.colors.isEmpty() );
-                // console.log( "no dia " );
-                return;
-            }
+        let animateCurrentStack = animateCurrentVertex.then( SnapShot.animateDiagonals );
+    }
 
-            // add initializing status of this diagonals to drawing data
-            console.assert( this.diagonals.points.length === this.diagonals.colors.length );
-            for ( let i = 0; i < this.diagonals.points.length; i++ ) {
-                let diagonal = this.diagonals.points[ i ];
-                let start = new THREE.Vector3( diagonal[ 0 ], diagonal[ 1 ], 0 );
-                let middle = new THREE.Vector3( diagonal[ 0 ], diagonal[ 1 ], 0 );
+    static animateDiagonals() {
+        let diagonals = Main.main.currentSnapshot.diagonals;
+        // Main.main.drawer.drawLines( Main.main.allDrawingPoints, Main.main.allDrawingColors );
+        // animate current diagonal
+        if ( diagonals.points.isEmpty() ) {
+            console.assert( diagonals.colors.isEmpty() );
+            // console.log( "no dia " );
+            return;
+        }
 
-                Main.main.pushData( new Float32Array( [ start.x, start.y, middle.x, middle.y ] ), this.diagonals.colors[ i ], 2 );
-            }
+        // add initializing status of this diagonals to drawing data
+        console.assert( diagonals.points.length === diagonals.colors.length );
+        for ( let i = 0; i < diagonals.points.length; i++ ) {
+            let diagonal = diagonals.points[ i ];
+            let start = new THREE.Vector3( diagonal[ 0 ], diagonal[ 1 ], 0 );
+            let middle = new THREE.Vector3( diagonal[ 0 ], diagonal[ 1 ], 0 );
 
-            // reset initializing time
-            Main.main.initializingDate = new Date();
-            // console.log( Main.main.currentSnapshot.diagonals, Main.main.currentSnapshot.diagonalsColors );
-            Lines.animateByPoint( Main.main.currentSnapshot.diagonals.points, Main.main.currentSnapshot.diagonals.colors );
-            // SnapShot.animateLine();
+            Main.main.pushData( new Float32Array( [ start.x, start.y, middle.x, middle.y ] ), diagonals.colors[ i ], 2 );
+        }
+
+        // reset initializing time
+        Main.main.initializingDate = new Date();
+        Lines.animateByPoint( diagonals.points, diagonals.colors );
+    }
+
+    // animate sweep line
+    static animateSweep( sweepLines, sweepLinesColors ) {
+        return new Promise( function ( resolve, reject ) {
+            // give enough time for the current animation to finish,
+            // or otherwise will cause double animations for the next one
+            Lines.animateByLine( sweepLines, sweepLinesColors );
+            setTimeout( resolve, SnapShot.animationTime + 50 );
         } );
     }
 
@@ -443,6 +508,7 @@ export default class SnapShot {
         snapshot.addSweep( new Float32Array( [ -1, vertex.y / Main.main.originalHeight, 1, vertex.y / Main.main.originalHeight ] ), new Float32Array( [].concat( Drawer.DeepSkyBlue, Drawer.DeepSkyBlue ) ) );
 
         let normalizedVertex = new Vertex( vertex.x / Main.main.originalWidth, vertex.y / Main.main.originalHeight );
+        // get drawing points of the circle
         let { points, colors } = new Circle( {
             center: normalizedVertex,
             radius: 0.02,

@@ -30,6 +30,10 @@ export default class MyMath {
     static EPSILON = 0.00000001; // 1e-8
     static PI = Math.PI;
 
+    static isUndefined( element ) {
+        return typeof ( element ) === "undefined";
+    }
+
     /**
      * get a number lies in range [min, max]
      *
@@ -37,6 +41,7 @@ export default class MyMath {
      * @param max maximum
      * @returns {Number} a number lies in range [min, max]
      */
+
     static randomInRange( min, max ) {
         return Math.random() * ( max - min ) + min;
     }

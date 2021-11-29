@@ -21,6 +21,8 @@ import SnapShot from "../../myLibraries/GUI/geometry/SnapShot.js";
 import Stack from "../../myLibraries/util/Stack.js";
 import Vertex from "../../myLibraries/util/geometry/DCEL/Vertex.js";
 import Button from "./Button.js";
+import Example from "./Example.js";
+import Pseudocode from "./Pseudocode.js";
 
 /**
  * Main entry class
@@ -32,12 +34,12 @@ import Button from "./Button.js";
  */
 
 // necessary
+// TODO: 11/23/2021 multi-clicks
+// TODO: 11/25/2021 stop animation when reset
+// TODO: 11/25/2021 file format
 
 // extra
-// TODO: 11/19/2021 show hints when cursors hovering over the canvas
-// TODO: 11/17/2021 provide three examples for users to select, simple, complex and maze
-// TODO: 11/17/2021 switch between the three ways to import input data, run the last one before clicking getStarted button
-// TODO: 11/23/2021 multi-clicks
+// TODO: 11/22/2021 pop indication when drawing points clock-wise order
 // TODO: 9/28/2021 not prefect for skip animation, hard-code timing is not very good, though....
 // TODO: 9/28/2021 easy-in, easy out
 
@@ -47,67 +49,22 @@ export default class Main {
     static main = null;
     static animateTime = 2500; // ms
 
-    // test data
-    static data = new Float32Array(
-        [ 0.5, 0.5,
-            -0.5, 0.5,
-            -0.5, -0.5,
-            0.5, -0.5 ] );
-
-    static data2 = new Float32Array(
-        [ 0.5, 0,
-            0.4, 0.5,
-            0.1, 0.3,
-            -0.3, 0.4,
-            -0.2, 0.1,
-            0.1, -0.1 ]
-    );
-
-    // examole data
-    static simpleExample = "// s\n" +
-        "// 0\n" +
-        "// e\n" +
-        "-3 4 5 0\n" +
-        "6\n" +
-        "10 10\n" +
-        "5 0\n" +
-        "4 5\n" +
-        "1 3\n" +
-        "-3 4\n" +
-        "-2 1\n" +
-        "1 -1";
-
-    static complexExample = "// s\n" +
-        "// 1\n" +
-        "// e\n" +
-        "-2 -9 0 7\n" +
-        "15\n" +
-        "12 12\n" +
-        "7 -3\n" +
-        "4 2\n" +
-        "-1 1\n" +
-        "0 7\n" +
-        "-3 3\n" +
-        "-6 4\n" +
-        "-8 2\n" +
-        "-7 -3\n" +
-        "-5 -1\n" +
-        "-4 -4\n" +
-        "-5 -6\n" +
-        "-2 -9\n" +
-        "1 -7\n" +
-        "3 -8\n" +
-        "4 -2";
-
-    static mazeExample = "";
-
     static InputType = {
         FILE: 0,
         CANVAS: 1,
         EXAMPLE: 2
     }
 
-    constructor( fileInput = Main.simpleExample ) {
+    static AnimationStatus = {
+        PENDING: 0,
+        LOADING: 1,
+        RUNNING: 2,
+        INTERRUPTED: 3,
+        FULFILLED: 4,
+        RESET: 5
+    }
+
+    constructor( fileInput = Example.simpleExample ) {
         Main.main = this;
 
         // input data
@@ -151,22 +108,16 @@ export default class Main {
         this.end = null;
         this.lineColor = null;
 
+        this.animationStatus = Main.AnimationStatus.FULFILLED;
+
         // global drawing data,
         // which will be fee in webgl to draw
         this.allDrawingPoints = [];
         this.allDrawingColors = [];
         this.allDrawingTypes = [];
 
-        // pseudocode element array
-        this.monoPse = null;
-        this.triPse = null;
-        this.startV = null;
-        this.endV = null;
-        this.splitV = null;
-        this.mergeV = null;
-        this.regularV = null;
+        this.pseudocodeEles = new Pseudocode();
 
-        this.__getPseElements();
         // deal with keypress
         window.addEventListener( 'keydown', Main.gotKey, false );
     }
@@ -181,13 +132,37 @@ export default class Main {
     }
 
     static gotKey( event ) {
-        console.log( event );
+        // console.log( event );
+        // console.log( event.keyCode );
         switch ( event.keyCode ) {
-            case 8:
+            case 8: // backspace
+                // remove vertex
                 Main.main.vertices.pop();
+                let linesData = Main.pop();
+                // remove vertex drawing data
                 Main.pop();
 
+                // remove vertex drawing data for drawing lines
+                if ( !linesData.isEmpty() ) {
+                    let points = linesData[ 0 ].remove( linesData[ 0 ].length - 3 );
+                    let colors = linesData[ 1 ].remove( linesData[ 1 ].length - 4 );
+
+                    if ( !linesData[ 0 ].isEmpty() ) {
+                        Main.main.pushData( points, colors, linesData[ 2 ] );
+                    }
+                }
+
                 Main.main.draw();
+                break;
+            case 17: // ctrl
+                if ( Main.main.buttons.buttonSkipMono.innerText === "Skip" ) {
+                    Main.main.buttons.buttonSkipMono.innerText = "Reset";
+                    Main.main.buttons.buttonSkipTri.innerText = "Reset";
+                }
+                else {
+                    Main.main.buttons.buttonSkipMono.innerText = "Skip";
+                    Main.main.buttons.buttonSkipTri.innerText = "Skip";
+                }
         }
     }
 
@@ -196,7 +171,7 @@ export default class Main {
      * @param {Number} increment
      */
 
-    static pop( times= 1, increment= 1 ) {
+    static pop( times = 1, increment = 1 ) {
         let res = [];
         if ( Main.main.allDrawingPoints.isEmpty() ) return res;
 
@@ -205,9 +180,9 @@ export default class Main {
 
 
         for ( let i = 0; i < times; i += increment ) {
-            res.push(Main.main.allDrawingPoints.pop());
-            res.push(Main.main.allDrawingColors.pop());
-            res.push(Main.main.allDrawingTypes.pop());
+            res.push( Main.main.allDrawingPoints.pop() );
+            res.push( Main.main.allDrawingColors.pop() );
+            res.push( Main.main.allDrawingTypes.pop() );
         }
 
         return res;
@@ -234,23 +209,6 @@ export default class Main {
         this.drawer.draw( this.allDrawingPoints, this.allDrawingColors, this.allDrawingTypes );
     }
 
-    __getPseElements() {
-        this.monoPse = document.getElementById( "monoPse" );
-        // this.monoPseChildren = this.monoPse.children;
-        this.triPse = document.getElementById( "triPse" );
-        // this.triPseChildren = this.triPse.children;
-        this.startV = document.getElementById( "startV" );
-        // this.startVChildren = this.startV.children;
-        this.endV = document.getElementById( "endV" );
-        // this.endVChildren = this.endV.children;
-        this.splitV = document.getElementById( "splitV" );
-        // this.splitVChildren= this.splitV.children;
-        this.mergeV = document.getElementById( "mergeV" );
-        // this.mergeVChildren = this.mergeV.children;
-        this.regularV = document.getElementById( "regularV" );
-        // this.regularVChildren = this.regularV.children;
-    }
-
     reset() {
         this.currentSnapshot.__hidden();
 
@@ -261,7 +219,7 @@ export default class Main {
         // clear the canvas
         this.drawer.reset();
         // pseudocode for mono should be visible
-        this.monoPse.style.display = "block";
+        this.pseudocodeEles.monoPse.style.display = "block";
     }
 
     __resetInputData() {
@@ -288,16 +246,31 @@ export default class Main {
 
     /**
      * @param {SnapShot} pre
-     * @param {SnapShot} next
+     * @param {SnapShot} curr
      */
 
-    __setSnapshots( pre = null, next = null ) {
+    __setSnapshots( pre = null, curr = null ) {
         this.preSnapshot = pre;
-        this.currentSnapshot = next;
+        this.currentSnapshot = curr;
+    }
+
+    /**
+     * @param {Boolean} isTri
+     */
+
+    setSnapShots( isTri = false ) {
+        if ( isTri ) {
+            this.__setSnapshots( this.snapshotsCurrentTri.peekSecond(), this.snapshotsCurrentTri.peek() );
+            // The first tri previous snapshot is the one from the momo's
+            if ( this.preSnapshot === null )
+                this.preSnapshot = this.snapshotsCurrent.peek();
+            return;
+        }
+
+        this.__setSnapshots( this.snapshotsCurrent.peekSecond(), this.snapshotsCurrent.peek() );
     }
 
     resetMonoSnapshots() {
-        this.resetDrawingData();
         this.currentSnapshot.__hidden();
         this.__setSnapshots();
 
@@ -308,14 +281,12 @@ export default class Main {
     }
 
     resetTriSnapshots() {
-        this.resetDrawingData();
         this.currentSnapshot.__hidden();
 
-        Stack.pushAll( this.snapshotsNext, this.snapshotsCurrent );
-        this.__setSnapshots( this.snapshotsCurrent.array[ this.snapshotsCurrent.array.length - 2 ], this.snapshotsCurrent.peek() );
-        this.snapshotsCurrent.peek().draw();
-
         Stack.pushAll( this.snapshotsCurrentTri, this.snapshotsNextTri );
+        Stack.pushAll( this.snapshotsNext, this.snapshotsCurrent );
+        this.__setSnapshots( this.snapshotsCurrent.peekSecond(), this.snapshotsCurrent.peek() );
+        this.snapshotsCurrent.peek().draw();
     }
 
     __readInfo( initializeLength, info ) {
@@ -327,15 +298,16 @@ export default class Main {
                 this.endPoint = new Vector( parseInt( info[ 2 ] ), parseInt( info[ 3 ] ), -1 );
                 break;
             case 1:
-                // read number of vertices
-                console.assert( info.length === 1 );
-                this.vertices = [];
-                break;
-            case 2:
                 // read original canvas's width and height
                 console.assert( info.length === 2 );
                 this.originalWidth = parseInt( info[ 0 ] );
                 this.originalHeight = parseInt( info[ 1 ] );
+
+                break;
+            case 2:
+                // read number of vertices
+                console.assert( info.length === 1 );
+                this.vertices = [];
                 break;
             default:
                 console.assert( false );
@@ -403,16 +375,17 @@ export default class Main {
         let initSnapshot = new SnapShot();
         initSnapshot.addPolygons( this.drawer.polygonsPoints, this.drawer.polygonsColors );
         // just above the canvas to make the sweep line invisible
-        initSnapshot.addSweep( new Float32Array( [ -1, 1.1, 1, 1.1 ] ), new Float32Array( [].concat( Drawer.DeepSkyBlue, Drawer.DeepSkyBlue ) ) );
+        initSnapshot.addSweepAtTop();
+
+        // load and animate corresponding pseudocode
+        initSnapshot.setMainPse( this.pseudocodeEles.monoPse );
+        initSnapshot.addMainPseIndices( 1, 2 );
+        initSnapshot.highlightPse();
 
         this.snapshotsCurrent.push( initSnapshot );
         this.snapshots.push( initSnapshot );
+        this.setSnapShots();
         this.snapshotsCurrent.peek().draw();
-
-        // load and animate corresponding pseudocode
-        initSnapshot.setMainPse( this.monoPse );
-        initSnapshot.addMainPseIndices( 1, 2 );
-        initSnapshot.highlightPse();
 
         // partitioning monotone polygons
         let monotonePolygons = MonotonePolygons.makeMonotone( this.vertices );
@@ -437,6 +410,9 @@ export default class Main {
         // add snapshots for monotone
         for ( let i = this.vertices.length; i > 0; i-- )
             this.snapshotsNext.push( this.snapshots[ i ] );
+
+        // add final snapshot only showing triangles
+        this.snapshotsNextTri.push( SnapShot.getLastSnapshot( this.snapshots[ this.snapshots.length - 1 ] ) );
 
         // add snapshots for triangulation
         for ( let i = this.snapshots.length - 1; i > this.vertices.length; i-- )

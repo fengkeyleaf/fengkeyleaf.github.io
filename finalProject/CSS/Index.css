@@ -25,10 +25,19 @@ ul li{
     height: 645px;
 }
 
-canvas {
-    float: left;
+.displayBox {
     border: 1px solid grey;
     background-color: white;
+}
+
+canvas {
+    float: left;
+    position: relative;
+}
+
+#canvasInstructions {
+    position: absolute;
+    color: #676767;
 }
 
 #pseudocode {
@@ -36,8 +45,6 @@ canvas {
     height: 600px;
     float: left;
     margin: 0px 0 0 40px;
-    border: 1px solid grey;
-    background-color: white;
     position: relative;
 }
 
@@ -87,6 +94,12 @@ select {
     font-size: 16px;
     font-weight: 600;
     color: white;
+}
+
+#instructions {
+    width: 327px;
+    height: 233px;
+    margin-left: 20px;
 }
 
 /* main settings end */

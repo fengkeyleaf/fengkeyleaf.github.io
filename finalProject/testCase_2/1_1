@@ -1,9 +1,28 @@
+// I'll use this file to illustrate on the input file format.
+// The first thing you may notice is that
+// you are free to add line comment with "// comments",
+// similar format in C/Java, but not support block comment for now.
+// The program was originally designed to compute
+// the shortest path with given start point and end point in a simple polygon,
+// and then show how many corners the path covers,
+// but for now it only supports simple polygon triangulation.
+// So the following three lines show how many corners( 0 ) the shortest path covers
+// with the start point ( -3, 4 ) and the end point ( 5, 0 ).
 // s
 // 0
 // e
+// The next line is the start point and end point, separated by one whitespace.
+// Since they are useless for the current implementation,
+// so you can assign then with random numbers, like: 0 0 0 0
 -3 4 5 0
-6
+// The next line is data defined the visualization area,
+// it should be a square and fully covers all given points
 10 10
+// The next line is the number of vertices of your polygon
+6
+// The rest of file is the data of those vertices.
+// Each line represents a vertex, with its x-coor and y-coor, separated by one whitespace.
+// By the way, this file defines the polygon provided by the simple example in the select list
 5 0
 4 5
 1 3

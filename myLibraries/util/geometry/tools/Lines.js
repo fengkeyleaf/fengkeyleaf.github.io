@@ -73,6 +73,10 @@ export default class Lines {
 
     // TODO: 9/29/2021 para: drawingTypes
     static animateByLine( lines, colors ) {
+        if ( Main.main.animationStatus === Main.AnimationStatus.INTERRUPTED ) {
+            return false;
+        }
+
         console.assert( lines.length % 2 === 0 );
         console.assert( lines.length === 2 );
         console.assert( lines.length === colors.length );
@@ -92,12 +96,13 @@ export default class Lines {
                 Main.main.pushData( new Float32Array( [ lineCurr[ 0 ], lineCurr[ 1 ], lineCurr[ 2 ], lineCurr[ 3 ] ] ), colors[ i + 1 ], 2 );
             }
 
-            Main.main.drawer.draw( Main.main.allDrawingPoints, Main.main.allDrawingColors, Main.main.allDrawingTypes );
+            Main.main.draw();
+            Main.main.animationStatus = Main.AnimationStatus.FULFILLED;
             return true;
         }
 
         requestAnimationFrame( () => Lines.animateByLine( lines, colors ) );
-        Main.main.drawer.draw( Main.main.allDrawingPoints, Main.main.allDrawingColors, Main.main.allDrawingTypes );
+        Main.main.draw();
 
         // pop previous statuses
         Main.pop( lines.length, 2 );
@@ -153,14 +158,14 @@ export default class Lines {
                 Main.main.pushData( new Float32Array( [ start.x, start.y, end.x, end.y ] ), colors[ i ], 2 );
             }
 
-            Main.main.drawer.draw( Main.main.allDrawingPoints, Main.main.allDrawingColors, Main.main.allDrawingTypes );
+            Main.main.draw();
             return true;
         }
 
         requestAnimationFrame( function () {
             Lines.animateByPoint( lines, colors );
         } );
-        Main.main.drawer.draw( Main.main.allDrawingPoints, Main.main.allDrawingColors, Main.main.allDrawingTypes );
+        Main.main.draw();
 
         // pop previous statuses
         Main.pop( lines.length, 1 );

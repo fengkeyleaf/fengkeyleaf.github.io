@@ -13,21 +13,6 @@ export default class Drawer {
     static DeepSkyBlue = [ 0, 191 / 255, 1, 1 ];
     static red = [ 1, 0, 51 / 255, 1 ]; // #FF0033
 
-    /**
-     *
-     * @param {Vector} vertex1
-     * @param {Vector} vertex2
-     */
-
-    static addDrawingPoints( vertex1, vertex2 ) {
-        let snapshot = new SnapShot();
-        snapshot.addAll( Main.main.snapshots[ Main.main.snapshots.length - 1 ] );
-        // snapshot.add( Main.main.drawer.polygonsPoints );
-        let { points, colors } = Drawer.drawLines( vertex1, vertex2 );
-        // console.log( points, colors )
-        snapshot.add( new Float32Array( points ), new Float32Array( colors ) );
-        Main.main.snapshots.push( snapshot );
-    }
 
     /**
      * @param {[Number]} points

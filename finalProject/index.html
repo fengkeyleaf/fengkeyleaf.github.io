@@ -6,8 +6,8 @@
     <link rel="stylesheet" href="CSS/Index.css">
 
     <script type="text/javascript" src="../myLibraries/lang/MyString.js"></script>
-    <script type="text/javascript" src="../myLibraries/lang/MyArray.js"></script>
-    <script type="text/javascript" src="https://threejs.org/build/three.js"></script>
+    <script type="module" src="../myLibraries/lang/MyArray.js"></script>
+    <script type="text/javascript" src="http://www.yanhuangxueyuan.com/versions/threejsR92/build/three.js"></script>
 
     <!--import test models-->
     <!--    <script type="module" src="./JavaScript/Test.js"></script>-->
@@ -23,9 +23,16 @@
 </header>
 
 <div class="main">
-    <canvas id="webgl-canvas" width="600px" height="600px"></canvas>
+    <div>
+        <canvas id="webgl-canvas" class="displayBox" width="600px" height="600px"></canvas>
+        <div id="canvasInstructions">
+            Click here in counter-clock-wise order to add points.<br>
+            Press "Backspace" to delete points.
+        </div>
+    </div>
 
-    <div id="pseudocode">
+
+    <div id="pseudocode" class="displayBox">
         <ul id="monoPse" style="display: block">
             <!--0-->
             <li>
@@ -162,17 +169,25 @@
                 <button id="skip_tri">Skip</button>
             </div>
         </div>
+
+        <div id="instructions" class="displayBox">
+            You can import polygon with the following ways:
+            1) Click on the canvas to add points( counter-clock-wise order required );<br>
+            2) Select an example from the list;<br>
+            3) Import your input file; <a href="https://github.com/fengkeyleaf/fengkeyleaf.github.io/blob/master/finalProject/testCase_2/1_1">file format info</a>;<br>
+            Click "Get Started" button to run the program when you're done.<br>
+        </div>
     </aside>
 </div>
 
-<section>
-    <div class="instructions">instructions</div>
-    <div class="display">Display</div>
-</section>
-
 <hr>
 
-<footer>Personal information</footer>
+<footer>
+    <ul>
+        <li>@Author: <a href="mailto: fengkeyleaf@gmail.com">Xiaoyu Tongyang</a>( <a href="https://github.com/fengkeyleaf">Github</a> )</li>
+        <li>@Web Development Consultant: <a href="mailto: zhouzefu@126.com">Zefu Zhou</a></li>
+    </ul>
+</footer>
 
 <!-- vertex Shader -->
 <script id="vertex-shader" type="x-shader/x-vertex">

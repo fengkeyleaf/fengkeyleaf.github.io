@@ -27,6 +27,8 @@ export default class Stack {
     }
 
     /**
+     * s1 -> s2
+     *
      * @param {Stack} s1
      * @param {Stack} s2
      */
@@ -56,6 +58,10 @@ export default class Stack {
 
     peek() {
         return this.isEmpty() ? null : this.array[ this.array.length - 1 ];
+    }
+
+    peekSecond() {
+        return this.array.length > 1 ? this.array[ this.array.length - 2 ] : null;
     }
 
     /**

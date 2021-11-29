@@ -1,6 +1,25 @@
 "use strict"
 
+/*
+ * Button.js
+ *
+ * Version:
+ *     $1.0$
+ *
+ * Revisions:
+ *     $1.0$
+ */
+
 import Main from "./Main.js";
+import Example from "./Example.js";
+import Program from "../../myLibraries/GUI/Program.js";
+import Stack from "../../myLibraries/util/Stack.js";
+
+/**
+ * class holding all buttons from the webpage
+ *
+ * @author Xiaoyu Tongyang, or call me sora for short
+ */
 
 export default class Button {
     constructor() {
@@ -24,13 +43,13 @@ export default class Button {
         this.example.onchange = function () {
             switch ( this.selectedIndex ) {
                 case 0:
-                    Main.main.fileInput = Main.simpleExample;
+                    Main.main.fileInput = Example.simpleExample;
                     break;
                 case 1:
-                    Main.main.fileInput = Main.complexExample;
+                    Main.main.fileInput = Example.complexExample;
                     break;
                 case 2:
-                    Main.main.fileInput = Main.mazeExample;
+                    Main.main.fileInput = Example.mazeExample;
             }
         }
 
@@ -45,6 +64,7 @@ export default class Button {
             if ( Main.main.snapshotsNext.size() > 0 ) {
                 console.log( "next" );
                 Main.main.snapshotsCurrent.push( Main.main.snapshotsNext.pop() );
+                Main.main.setSnapShots();
                 Main.main.snapshotsCurrent.peek().draw();
                 return true;
             }
@@ -56,7 +76,12 @@ export default class Button {
         this.buttonPreMono.addEventListener( "click", function () {
             if ( Main.main.snapshotsCurrent.size() > 1 ) {
                 console.log( "pre" );
+                // hide previous, only needed when jump mono, directly go into tri
+                if ( Main.main.currentSnapshot != null )
+                    Main.main.currentSnapshot.__hidden();
+
                 Main.main.snapshotsNext.push( Main.main.snapshotsCurrent.pop() );
+                Main.main.setSnapShots();
                 Main.main.snapshotsCurrent.peek().draw();
             }
         } );
@@ -87,11 +112,11 @@ export default class Button {
                 skipMono().then( null, null );
             }
 
-            switch ( e.button ) {
-                case 0: // left mouse
+            switch ( this.innerText ) {
+                case "Skip":
                     skip();
                     break;
-                case 2: // right mouse
+                case "Reset":
                     Main.main.resetMonoSnapshots();
             }
         } );
@@ -100,9 +125,15 @@ export default class Button {
     __addTriEvents() {
         // related functions for Tri
         function nextTri() {
+            // set the status of tri snapshot stack properly
+            if ( !Main.main.snapshotsNext.isEmpty() ) {
+                Stack.pushAll( Main.main.snapshotsNext, Main.main.snapshotsCurrent );
+            }
+
             if ( Main.main.snapshotsNextTri.size() > 0 ) {
                 console.log( "tri next" );
                 Main.main.snapshotsCurrentTri.push( Main.main.snapshotsNextTri.pop() );
+                Main.main.setSnapShots( true );
                 Main.main.snapshotsCurrentTri.peek().draw();
                 return true;
             }
@@ -114,10 +145,14 @@ export default class Button {
         this.buttonPreTri.addEventListener( "click", function () {
             if ( Main.main.snapshotsCurrentTri.size() > 1 ) {
                 console.log( "tri pre" );
+                // hide previous, only needed when jump mono, directly go into tri
+                if ( Main.main.currentSnapshot != null )
+                    Main.main.currentSnapshot.__hidden();
+
                 Main.main.snapshotsNextTri.push( Main.main.snapshotsCurrentTri.pop() );
+                Main.main.setSnapShots( true );
                 Main.main.snapshotsCurrentTri.peek().draw();
             }
-            // Main.main.drawer.draw( Main.main.drawer.polygonsPoints );
         } );
 
         this.buttonNextTri = document.getElementById( "next_tri" );
@@ -145,11 +180,15 @@ export default class Button {
                 skipTri().then( null, null );
             }
 
-            switch ( e.button ) {
-                case 0: // left mouse
+            switch ( this.innerText ) {
+                case "Skip":
+                    // hide previous, only needed when jump mono, directly go into tri
+                    if ( Main.main.currentSnapshot != null )
+                        Main.main.currentSnapshot.__hidden();
+
                     skip();
                     break;
-                case 2: // right mouse
+                case "Reset":
                     Main.main.resetTriSnapshots();
             }
         } );
@@ -168,6 +207,9 @@ export default class Button {
             program.reset();
             // enable the ability to add input data
             buttons.getStarted.onclick = init;
+            // change instructions for init
+            document.getElementById( "instructions" ).innerHTML = Example.initInstructions;
+            Program.showCanvasInstructions();
         }
 
         function init() {
@@ -195,6 +237,9 @@ export default class Button {
                     program.drawer.cancelCanvasEvents();
                     // enable the ability to reset the program
                     buttons.getStarted.onclick = reset;
+                    // change instructions for the program
+                    document.getElementById( "instructions" ).innerText = Example.programInstructions;
+                    Program.hideCanvasInstructions();
 
                     program.resetDrawingData();
                     program.doTheAlgorithm();
@@ -205,7 +250,7 @@ export default class Button {
     static __isNotInputFromFile() {
         let main = Main.main;
         return main.whichInput === Main.InputType.FILE &&
-                ( main.fileInput === Main.simpleExample || main.fileInput === Main.complexExample || main.fileInput === Main.mazeExample );
+                ( main.fileInput === Example.simpleExample || main.fileInput === Example.complexExample || main.fileInput === Example.mazeExample );
     }
 
     __addHoverEvents() {
