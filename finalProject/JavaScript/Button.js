@@ -22,8 +22,9 @@ import Stack from "../../myLibraries/util/Stack.js";
  */
 
 export default class Button {
+
     constructor() {
-        // bottons
+        // buttons
         this.getStarted = null;
         this.example = null;
 
@@ -35,7 +36,14 @@ export default class Button {
         this.buttonPreTri = null;
         this.buttonSkipTri = null;
 
+        this.isUnable = false;
         this.__addEvents();
+    }
+
+    static enableUntil( waitTime ) {
+        setTimeout( function () {
+            Main.main.buttons.isUnable = false;
+        }, waitTime );
     }
 
     __addExampleEvent() {
@@ -65,15 +73,16 @@ export default class Button {
                 console.log( "next" );
                 Main.main.snapshotsCurrent.push( Main.main.snapshotsNext.pop() );
                 Main.main.setSnapShots();
+
+                Main.synchronizeAnimation( Main.animateTime + 50 );
                 Main.main.snapshotsCurrent.peek().draw();
                 return true;
             }
+
             return false;
         }
 
-        // Monotone Polygons
-        this.buttonPreMono = document.getElementById( "pre_mono" );
-        this.buttonPreMono.addEventListener( "click", function () {
+        function preMono() {
             if ( Main.main.snapshotsCurrent.size() > 1 ) {
                 console.log( "pre" );
                 // hide previous, only needed when jump mono, directly go into tri
@@ -82,35 +91,55 @@ export default class Button {
 
                 Main.main.snapshotsNext.push( Main.main.snapshotsCurrent.pop() );
                 Main.main.setSnapShots();
+
+                Main.synchronizeAnimation( Main.animateTime + 50 );
                 Main.main.snapshotsCurrent.peek().draw();
             }
+        }
+
+        // Monotone Polygons
+        this.buttonPreMono = document.getElementById( "pre_mono" );
+        this.buttonPreMono.addEventListener( "click", function () {
+            if ( Main.main.buttons.isUnable ) return;
+            Main.main.buttons.isUnable = true;
+            Button.enableUntil( Main.animateTime );
+            preMono();
         } );
 
         this.buttonNextMono = document.getElementById( "next_mono" );
-        this.buttonNextMono.addEventListener( "click", nextMono );
+        this.buttonNextMono.addEventListener( "click", function () {
+            if ( Main.main.buttons.isUnable ) return;
+            Main.main.buttons.isUnable = true;
+            Button.enableUntil( Main.animateTime );
+            nextMono();
+        } );
+
+        function skip() {
+            // draw all the next snapshots
+            function skipMono() {
+                return new Promise( function ( resolve, reject ) {
+                    resolve = skipNext;
+                    reject = console.log;
+                    nextMono() ? setTimeout( resolve, Main.animateTime ) : reject( "Skipped Mono" );
+                } );
+            }
+
+            function skipNext() {
+                return new Promise( function ( resolve, reject ) {
+                    resolve = skipMono;
+                    reject = console.log;
+                    nextMono() ? setTimeout( resolve, Main.animateTime ) : reject( "Skipped Mono" );
+                } );
+            }
+
+            skipMono().then( null, null );
+        }
 
         this.buttonSkipMono = document.getElementById( "skip_mono" );
-        this.buttonSkipMono.addEventListener( "mousedown", function ( e ) {
-            function skip() {
-                // draw all the next snapshots
-                function skipMono() {
-                    return new Promise( function ( resolve, reject ) {
-                        resolve = skipNext;
-                        reject = console.log;
-                        nextMono() ? setTimeout( resolve, Main.animateTime ) : reject( "Skipped Mono" );
-                    } );
-                }
-
-                function skipNext() {
-                    return new Promise( function ( resolve, reject ) {
-                        resolve = skipMono;
-                        reject = console.log;
-                        nextMono() ? setTimeout( resolve, Main.animateTime ) : reject( "Skipped Mono" );
-                    } );
-                }
-
-                skipMono().then( null, null );
-            }
+        this.buttonSkipMono.addEventListener( "mousedown", function () {
+            if ( Main.main.buttons.isUnable ) return;
+            Main.main.buttons.isUnable = true;
+            Button.enableUntil( Main.main.snapshotsNext.size() * Main.animateTime + 50 );
 
             switch ( this.innerText ) {
                 case "Skip":
@@ -140,9 +169,7 @@ export default class Button {
             return false;
         }
 
-        // Triangulation
-        this.buttonPreTri = document.getElementById( "pre_tri" );
-        this.buttonPreTri.addEventListener( "click", function () {
+        function preTri() {
             if ( Main.main.snapshotsCurrentTri.size() > 1 ) {
                 console.log( "tri pre" );
                 // hide previous, only needed when jump mono, directly go into tri
@@ -153,32 +180,50 @@ export default class Button {
                 Main.main.setSnapShots( true );
                 Main.main.snapshotsCurrentTri.peek().draw();
             }
+        }
+
+        // Triangulation
+        this.buttonPreTri = document.getElementById( "pre_tri" );
+        this.buttonPreTri.addEventListener( "click", function () {
+            if ( Main.main.buttons.isUnable ) return;
+            Main.main.buttons.isUnable = true;
+            Button.enableUntil( Main.animateTime );
+            preTri();
         } );
 
         this.buttonNextTri = document.getElementById( "next_tri" );
-        this.buttonNextTri.addEventListener( "click", nextTri );
+        this.buttonNextTri.addEventListener( "click", function () {
+            if ( Main.main.buttons.isUnable ) return;
+            Main.main.buttons.isUnable = true;
+            Button.enableUntil( Main.animateTime );
+            nextTri();
+        } );
+
+        function skip() {
+            function skipTri() {
+                return new Promise( function ( resolve, reject ) {
+                    resolve = skipNextTri;
+                    reject = console.log;
+                    nextTri() ? setTimeout( resolve, Main.animateTime ) : reject( "Skipped Tri" );
+                } );
+            }
+
+            function skipNextTri() {
+                return new Promise( function ( resolve, reject ) {
+                    resolve = skipTri;
+                    reject = console.log;
+                    nextTri() ? setTimeout( resolve, Main.animateTime ) : reject( "Skipped Tri" );
+                } );
+            }
+
+            skipTri().then( null, null );
+        }
 
         this.buttonSkipTri = document.getElementById( "skip_tri" );
         this.buttonSkipTri.addEventListener( "mousedown", function ( e ) {
-            function skip() {
-                function skipTri() {
-                    return new Promise( function ( resolve, reject ) {
-                        resolve = skipNextTri;
-                        reject = console.log;
-                        nextTri() ? setTimeout( resolve, Main.animateTime ) : reject( "Skipped Tri" );
-                    } );
-                }
-
-                function skipNextTri() {
-                    return new Promise( function ( resolve, reject ) {
-                        resolve = skipTri;
-                        reject = console.log;
-                        nextTri() ? setTimeout( resolve, Main.animateTime ) : reject( "Skipped Tri" );
-                    } );
-                }
-
-                skipTri().then( null, null );
-            }
+            if ( Main.main.buttons.isUnable ) return;
+            Main.main.buttons.isUnable = true;
+            Button.enableUntil( Main.main.snapshotsNextTri.size() * Main.animateTime + 50 );
 
             switch ( this.innerText ) {
                 case "Skip":
@@ -186,6 +231,7 @@ export default class Button {
                     if ( Main.main.currentSnapshot != null )
                         Main.main.currentSnapshot.__hidden();
 
+                    Main.main.isAnimatingSkip = true;
                     skip();
                     break;
                 case "Reset":

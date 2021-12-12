@@ -73,10 +73,6 @@ export default class Lines {
 
     // TODO: 9/29/2021 para: drawingTypes
     static animateByLine( lines, colors ) {
-        if ( Main.main.animationStatus === Main.AnimationStatus.INTERRUPTED ) {
-            return false;
-        }
-
         console.assert( lines.length % 2 === 0 );
         console.assert( lines.length === 2 );
         console.assert( lines.length === colors.length );
@@ -97,7 +93,6 @@ export default class Lines {
             }
 
             Main.main.draw();
-            Main.main.animationStatus = Main.AnimationStatus.FULFILLED;
             return true;
         }
 

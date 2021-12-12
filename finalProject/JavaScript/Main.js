@@ -55,15 +55,6 @@ export default class Main {
         EXAMPLE: 2
     }
 
-    static AnimationStatus = {
-        PENDING: 0,
-        LOADING: 1,
-        RUNNING: 2,
-        INTERRUPTED: 3,
-        FULFILLED: 4,
-        RESET: 5
-    }
-
     constructor( fileInput = Example.simpleExample ) {
         Main.main = this;
 
@@ -108,7 +99,8 @@ export default class Main {
         this.end = null;
         this.lineColor = null;
 
-        this.animationStatus = Main.AnimationStatus.FULFILLED;
+        this.isAnimating = false;
+        this.isAnimatingSkip = false;
 
         // global drawing data,
         // which will be fee in webgl to draw
@@ -129,6 +121,17 @@ export default class Main {
         reader.onload = function () {
             new Main( reader.result ).doTheAlgorithm();
         };
+    }
+
+    /**
+     * @param {Number} waitTime
+     */
+
+    static synchronizeAnimation( waitTime ) {
+        Main.main.isAnimating = true;
+        setTimeout( function () {
+            Main.main.isAnimating = false;
+        }, waitTime );
     }
 
     static gotKey( event ) {

@@ -289,7 +289,7 @@ export default class SnapShot {
      */
 
     highlightPse() {
-        console.log( this );
+        // console.log( this );
 
         let main = Main.main;
 
@@ -368,15 +368,6 @@ export default class SnapShot {
     draw() {
         // console.assert( this.current.length === this.currentAnimations.length );
         // console.log( this );
-
-        // set current and previous snapshot
-        // for global use
-        // if ( Main.main.currentSnapshot === null )
-        //     Main.main.currentSnapshot = this;
-        // else {
-        //     Main.main.preSnapshot = Main.main.currentSnapshot;
-        //     Main.main.currentSnapshot = this;
-        // }
 
         // reset drawing data
         Main.main.resetDrawingData();
