@@ -19,7 +19,6 @@ import MonotonePolygons from "../../myLibraries/util/geometry/tools/MonotonePoly
 import Drawer from "../../myLibraries/GUI/geometry/Drawer.js";
 import SnapShot from "../../myLibraries/GUI/geometry/SnapShot.js";
 import Stack from "../../myLibraries/util/Stack.js";
-import Vertex from "../../myLibraries/util/geometry/DCEL/Vertex.js";
 import Button from "./Button.js";
 import Example from "./Example.js";
 import Pseudocode from "./Pseudocode.js";
@@ -36,12 +35,12 @@ import Pseudocode from "./Pseudocode.js";
 // necessary
 // TODO: 11/23/2021 multi-clicks
 // TODO: 11/25/2021 stop animation when reset
-// TODO: 11/25/2021 file format
 
 // extra
-// TODO: 11/22/2021 pop indication when drawing points clock-wise order
 // TODO: 9/28/2021 not prefect for skip animation, hard-code timing is not very good, though....
 // TODO: 9/28/2021 easy-in, easy out
+// TODO: 12/8/2021 controls over animation speed
+// TODO: 12/13/2021 drawing diagonals without showing sweep line
 
 export default class Main {
     static PATTERN_START_END_POINT = "^-*\\d+ -*\\d+ -*\\d+ -*\\d+$";
@@ -54,6 +53,11 @@ export default class Main {
         CANVAS: 1,
         EXAMPLE: 2
     }
+
+    // this point is always outside of the canvas,
+    // so use this to check to see
+    // if a user adds points in counter-clock wise
+    infinitePoint = null;
 
     constructor( fileInput = Example.simpleExample ) {
         Main.main = this;
@@ -100,7 +104,6 @@ export default class Main {
         this.lineColor = null;
 
         this.isAnimating = false;
-        this.isAnimatingSkip = false;
 
         // global drawing data,
         // which will be fee in webgl to draw
@@ -132,6 +135,18 @@ export default class Main {
         setTimeout( function () {
             Main.main.isAnimating = false;
         }, waitTime );
+    }
+
+    initInfinitePoint() {
+        this.infinitePoint = new Vector( 2 * this.originalWidth, 2 * this.originalHeight );
+    }
+
+    isCounterClockWiseInput() {
+        console.log( this.infinitePoint, this.vertices );
+        if ( !Polygons.isOnThisPolygonWithVertices( this.vertices, this.infinitePoint ) ) {
+            this.vertices.reverse();
+            console.log( "reversed" );
+        }
     }
 
     static gotKey( event ) {
@@ -175,12 +190,11 @@ export default class Main {
      */
 
     static pop( times = 1, increment = 1 ) {
-        let res = [];
-        if ( Main.main.allDrawingPoints.isEmpty() ) return res;
-
         console.assert( Main.main.allDrawingPoints.length === Main.main.allDrawingColors.length );
         console.assert( Main.main.allDrawingColors.length === Main.main.allDrawingTypes.length );
 
+        let res = [];
+        if ( Main.main.allDrawingPoints.isEmpty() ) return res;
 
         for ( let i = 0; i < times; i += increment ) {
             res.push( Main.main.allDrawingPoints.pop() );
@@ -292,7 +306,7 @@ export default class Main {
         this.snapshotsCurrent.peek().draw();
     }
 
-    __readInfo( initializeLength, info ) {
+    #readInfo( initializeLength, info ) {
         switch ( initializeLength ) {
             case 0:
                 // read start and end point
@@ -337,7 +351,7 @@ export default class Main {
             let arePoints = new RegExp( Main.PATTERN_START_END_POINT ).test( line );
             if ( initializeLength < 3 &&
                 ( isLength || arePoints ) ) {
-                this.__readInfo( initializeLength++,
+                this.#readInfo( initializeLength++,
                     line.split( new RegExp( ReadFromFile.PATTERN_MULTI_WHITE_CHARACTERS ) ) );
                 continue;
             }

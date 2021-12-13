@@ -154,7 +154,7 @@ export default class Lines {
             }
 
             Main.main.draw();
-            return true;
+            return;
         }
 
         requestAnimationFrame( function () {

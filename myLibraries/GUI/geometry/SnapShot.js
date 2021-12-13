@@ -352,7 +352,7 @@ export default class SnapShot {
      * @param {Stack} snapshotsCurrent
      */
 
-    __draw( len, snapshotsCurrent ) {
+    static #draw( len, snapshotsCurrent ) {
 
         for ( let i = 0; i < len; i++ ) {
             let snapshot = snapshotsCurrent.array[ i ];
@@ -389,17 +389,14 @@ export default class SnapShot {
         // draw last step
         if ( this.isLast ) {
             // first push monotone's diagonals
-            this.__draw( Main.main.snapshotsCurrent.array.length, Main.main.snapshotsCurrent );
+            SnapShot.#draw( Main.main.snapshotsCurrent.array.length, Main.main.snapshotsCurrent );
 
             // then push triangulation's diagonals
-            this.__draw( Main.main.snapshotsCurrentTri.array.length, Main.main.snapshotsCurrentTri );
+            SnapShot.#draw( Main.main.snapshotsCurrentTri.array.length, Main.main.snapshotsCurrentTri );
 
             Main.main.draw();
             return;
         }
-
-        // // animate pseudocode
-        // this.highlightPse();
 
         // draw the monotone polygon being triangulating
         if ( this.monotone.points != null ) {
@@ -417,11 +414,11 @@ export default class SnapShot {
         // i.e. avoid re-drawing this snapshot twice
         // first push monotone's diagonals
         let len = Main.main.snapshotsCurrentTri.array.isEmpty() ? Main.main.snapshotsCurrent.array.length - 1 : Main.main.snapshotsCurrent.array.length;
-        this.__draw( len, Main.main.snapshotsCurrent );
+        SnapShot.#draw( len, Main.main.snapshotsCurrent );
 
         // then push triangulation's diagonals
         len = Main.main.snapshotsCurrentTri.array.length - 1;
-        this.__draw( len, Main.main.snapshotsCurrentTri );
+        SnapShot.#draw( len, Main.main.snapshotsCurrentTri );
 
         // draw previous vertices int the stack
         console.assert( this.sweepLines.points );
@@ -464,7 +461,7 @@ export default class SnapShot {
             return;
         }
 
-        // add initializing status of this diagonals to drawing data
+        // add initializing status of these diagonals to drawing data
         console.assert( diagonals.points.length === diagonals.colors.length );
         for ( let i = 0; i < diagonals.points.length; i++ ) {
             let diagonal = diagonals.points[ i ];

@@ -6,12 +6,16 @@
   <link rel="stylesheet" href="../assignmentZero/CSS/Index.css">
 
   <script type="text/javascript" src="../../myLibraries/lang/MyString.js"></script>
-  <script type="text/javascript" src="../../myLibraries/lang/MyArray.js"></script>
-  <script type="text/javascript" src="http://www.yanhuangxueyuan.com/versions/threejsR92/build/three.js"></script>
+  <script type="module" src="../../myLibraries/lang/MyArray.js"></script>
+  <script type="text/javascript" src="https://threejs.org/build/three.js"></script>
 </head>
 <body>
 <script type="module">
-  import Animator from "./AnimatorTwo.js";
+  import Animator from "./JavaScript/AnimatorTwo.js";
+  import Dynamics from "../../myLibraries/animation/Dynamics.js";
+
+  // console.log( Dynamics.xAxis.dot( Dynamics.xAxis.clone().negate() ) ); // -1
+  // console.log( Dynamics.xAxis.dot( Dynamics.xAxis.clone() ) ); // 1
 
   window.onload = Animator.run;
 </script>

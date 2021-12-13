@@ -115,7 +115,7 @@ export default class MoCop {
      * @param {AnimationClip} clip
      */
 
-    static getKeyFrames( clip ) {
+    static getKeyFrames( clip) {
         let res = [];
         console.assert( clip.tracks.length % 2 === 0 );
 
@@ -179,7 +179,7 @@ export default class MoCop {
             n += 3;
             res.push( {
                 name: track.name,
-                time: t * 1000,
+                time: t * 1000, // ms
                 position: new THREE.Vector3( q[ 0 ], q[ 1 ], q[ 2 ] )
             } );
         }
@@ -201,7 +201,7 @@ export default class MoCop {
             n += 4;
             res.push( {
                 name: track.name,
-                time: t * 1000,
+                time: t * 1000, // ms
                 quaternion: new THREE.Quaternion( q[ 0 ], q[ 1 ], q[ 2 ], q[ 3 ] )
             } );
         }
@@ -210,6 +210,7 @@ export default class MoCop {
     }
 
     /**
+     * animate Hierarchical Models
      *
      * @param {Scene} scene
      * @param {{}} root

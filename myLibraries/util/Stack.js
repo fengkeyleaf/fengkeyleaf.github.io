@@ -76,6 +76,10 @@ export default class Stack {
         return this.array.length;
     }
 
+    /**
+     * clear this stack, but this will give a new pointer
+     */
+
     clear() {
         this.array = [];
     }

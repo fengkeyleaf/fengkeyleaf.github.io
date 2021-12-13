@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<script>
+    function nextMono( i ) {
+        console.log( i );
+        return i <= 5;
+    }
+
+
+    function skipMono() {
+        let promise = new Promise( f );
+        function f( resolve, reject ) {
+            resolve = promise;
+            reject = console.log;
+            nextMono( 1 ) ? setTimeout( resolve.then, 1000 ) : reject( "Skipped Mono" );
+        }
+
+        return promise;
+    }
+
+    let promise = new Promise( f );
+    function f( resolve, reject ) {
+        reject = console.log;
+        nextMono( 1 ) ? setTimeout( resolve.then, 1000 ) : reject( "Skipped Mono" );
+    }
+
+
+    // skipMono().then( null, null );
+</script>
+
+<script>
+    // function factorial( num ) {
+    //     if ( num <= 1 ) {
+    //         return 1;
+    //     } else {
+    //         return num * factorial( num - 1 )
+    //     }
+    // }
+    //
+    // var anotherFactorial = factorial;
+    // // factorial = null;
+    // // 报错 ，因为最好是return num* arguments.callee（num-1），arguments.callee指向当前执行函数，但是在严格模式下不能使用该属性也会报错，所以借助闭包来实现
+    // console.log( anotherFactorial( 5 ) );
+    //
+    // // 使用闭包实现递归
+    // var newFactorial = ( function f( num ) {
+    //     if ( num < 1 ) {
+    //         return 1
+    //     } else {
+    //         return num * f( num - 1 )
+    //     }
+    // } ) //这样就没有问题了，实际上起作用的是闭包函数f，而不是外面的函数newFactorial
+    // console.log( newFactorial( 5 ) );
+</script>
+
+<script>
+    var name = "The Window";
+
+    var object = {
+        name: "My Object",
+
+        getNameFunc: function () {
+            return function () {
+                return this.name;
+            };
+
+        }
+
+    };
+
+
+    // alert( object.getNameFunc()() ); // The Window
+
+    // var name = "The Window";
+    // var object = {
+    //     name: "My Object",
+    //     getNameFunc: function () {
+    //         // alert( this.name );
+    //         return function () {
+    //             return this.name;
+    //         };
+    //     }
+    // };
+    // alert( object.getNameFunc()() ); // My Object
+
+    var name = "The Window";
+
+    var object = {
+        name: "My Object",
+
+        getNameFunc: function () {
+            var that = this;
+            return function () {
+                return that.name;
+            };
+
+        }
+
+    };
+
+    // alert( object.getNameFunc()() ); // My Object
+
+    // var name = "The Window";
+    //
+    // var object = {
+    //     name: "My Object",
+    //
+    //     getNameFunc: function () {
+    //         return function () {
+    //             return name;
+    //         };
+    //
+    //     }
+    //
+    // };
+    //
+    // alert( object.getNameFunc()() ); // My Object
+</script>
+</body>
+</html>

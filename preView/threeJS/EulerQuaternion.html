@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>第一个three.js文件_WebGL三维场景</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            /* 隐藏body窗口区域滚动条 */
+        }
+    </style>
+    <!--引入three.js三维引擎-->
+    <script src="http://www.yanhuangxueyuan.com/versions/threejsR92/build/three.js"></script>
+    <!-- <script src="./three.js"></script> -->
+    <!--     <script src="http://www.yanhuangxueyuan.com/threejs/build/three.js"></script> -->
+</head>
+
+<body>
+<script>
+    // 一个网格模型对象，基类是Object3D
+    var mesh = new THREE.Mesh()
+    // 绕z轴旋转
+    // mesh.rotateZ(Math.PI)
+
+    console.log('查看角度属性rotation',mesh.rotation);
+    console.log('查看四元数属性quaternion',mesh.quaternion);
+
+    var quaternion = new THREE.Quaternion();
+    // // 旋转轴new THREE.Vector3(0,1,0)
+    // // 旋转角度Math.PI/2
+    quaternion.setFromAxisAngle( new THREE.Vector3( 0, 1, 0 ), Math.PI / 2 )
+    console.log( '查看四元数结构', quaternion );
+    quaternion.slerpQuaternions();
+    quaternion.slerp();
+    quaternion.multiply();
+    //
+    // console.log( new THREE.Vector3( 2.0, 0.0, 0.0 ).sub( new THREE.Vector3( 1.0, 0.0, 0.0 ) ) );
+    // new THREE.Vector3( 2.0, 0.0, 0.0 ).equals( new THREE.Vector3( 1.0, 0.0, 0.0 ) );
+</script>
+</body>
+</html>

@@ -10,34 +10,32 @@
  *     $1.0$
  */
 
-import MyMath from "../lang/MyMath.js";
-import KeyFraming from "./KeyFraming.js";
-import Ball from "../../animation/assignmentTwo/Ball.js";
-import Dynamics from "./Dynamics.js";
-import CollidingObject from "../../animation/assignmentTwo/CollidingObject.js";
-import Cushion from "../../animation/assignmentTwo/Cushion.js";
-
 /**
- * Assignment 0:
+ * Assignment 0 - animation framework:
  * Create the framework and testbed for the animation
  * techniques to be explored during the semester.
  *
- * Assignment 1:
+ * Assignment 1 - keyframing:
  * Write a simplified key framing system that will translate
  * and rotate a single object based on a set of key frames.
  *
- * Assignment 2:
- * Write a system that will simulate a single shot of a billiards
- * game.
+ * Assignment 2 - billiards, or collision system:
+ * Write a system that will simulate a single shot of a billiards game.
+ *
+ * Assignment 3 - motion capture:
+ * Read, interpret and apply motion capture data.
+ *
+ * Assignment #4a - particle system
+ * To implement a simple particle system
+ * Simulate the tail of a moving comet
+ *
+ * Assignment #4b - Behavioral motion (not implemented yet)
  *
  * @author Xiaoyu Tongyang, or call me sora for short
  */
 
 export default class Animator {
     static animator = null;
-    static xAxis = new THREE.Vector3( 1, 0, 0 );
-    static yAxis = new THREE.Vector3( 0, 1, 0 );
-    static zAxis = new THREE.Vector3( 0, 0, 1 );
 
     constructor() {
         // time
@@ -50,5 +48,10 @@ export default class Animator {
         this.camera = null;
         this.group1 = null;
         this.mesh1 = null;
+        this.controls = null;
+    }
+
+    static render() {
+        Animator.animator.renderer.render( Animator.animator.scene, Animator.animator.camera );
     }
 }

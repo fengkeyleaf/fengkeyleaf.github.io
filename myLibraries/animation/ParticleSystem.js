@@ -10,7 +10,7 @@
  *     $1.0$
  */
 
-import Particle from "../../animation/assignmentFour/Particle.js";
+import Particle from "./Particle.js";
 import Dynamics from "./Dynamics.js";
 
 /**
@@ -33,17 +33,25 @@ export default class ParticleSystem {
      * @param {Scene} scene
      * @param {Number} meanSpeed
      * @param {Number} maxSpeed
-     * @param {Number} radius
+     * @param {Number} radius bounded sphere for the position where particles are generated
+     * @param {Number} meanLifetime
+     * @param {Number} maxLifetime
+     * @param {Number} psi emission angle, side Angle
      */
 
-    constructor( MAX_PARTICLES, generateRate, texture, scene, meanSpeed, maxSpeed, radius ) {
-        this.MAX_PARTICLES = MAX_PARTICLES;
-        this.texture = texture;
-        this.scene = scene;
-        this.meanSpeed = meanSpeed;
-        this.maxSpeed = maxSpeed;
-        this.radius = radius;
-        this.generateRate = generateRate;
+    constructor( paras ) {
+        this.MAX_PARTICLES = paras.MAX_PARTICLES;
+        this.texture = paras.texture;
+        this.scene = paras.scene;
+        this.meanV = paras.meanV;
+        this.maxV =paras.maxV;
+        this.radius = paras.radius;
+        this.generateRate = paras.generateRate;
+
+        this.meanLifetime = paras.meanLifetime;
+        this.maxLifetime = paras.maxLifetime;
+        this.psi = paras.psi; // emission angle, side Angle
+        this.isAppliedGravity = paras.isAppliedGravity ? true : false;
 
         this.particles = [];
         this.pool = [];
@@ -64,7 +72,7 @@ export default class ParticleSystem {
     }
 
     /**
-     * initialize some particles
+     * initialize some particles at the origin
      */
 
     setup() {
@@ -78,14 +86,14 @@ export default class ParticleSystem {
      * @param {Vector3} normal
      */
 
-    spawn( center, normal ) {
+    spawn( center, normal,  ) {
 
         if ( this.particles.length >= this.MAX_PARTICLES )
             this.pool.push( this.particles.shift() );
 
-        let lifeTime = 20 + Math.random() * 60;
+        let lifeTime = this.meanLifetime + Math.random() * this.maxLifetime;
         let particle = this.pool.length ? this.pool.shift() : new Particle( this.texture, ParticleSystem.color, this.scene );
-        particle.init( center, normal, this.radius, this.getSpeed(), 60, ParticleSystem.fourth, lifeTime );
+        particle.init( center, normal, this.radius, this.getSpeed(), this.psi, ParticleSystem.fourth, lifeTime );
 
         this.particles.push( particle );
     }
@@ -93,23 +101,48 @@ export default class ParticleSystem {
     /**
      * update particles
      *
-     * @param {Number} t, seconds
+     * @param {Number} current, seconds
+     * @param {Number} dt, seconds
      */
 
-    update( t ) {
+    update( current, dt ) {
+        // remove dead particles
         for ( let i = this.particles.length - 1; i >= 0; i-- ) {
             let particle = this.particles[ i ];
-
-            if ( particle.alive ) {
-                particle.updatePos( t );
-                particle.updateLifetime();
-                particle.updateOpacity();
-            } else {
+            if ( !particle.alive ) {
                 let e = this.particles.splice( i, 1 );
-                // console.log( e );
                 this.pool.push( e[ 0 ] );
             }
         }
+
+        // add forces and update position
+        for ( let i = this.particles.length - 1; i >= 0; i-- ) {
+            let particle = this.particles[ i ];
+            console.assert( particle.alive );
+
+            if ( this.isAppliedGravity ) particle.addGravityForce( Dynamics.G );
+            particle.updatePos( dt );
+        }
+
+        // detect collision
+        dt = Dynamics.detectCollision( current, dt );
+
+        // update Momentum and velocity
+        for ( let i = this.particles.length - 1; i >= 0; i-- ) {
+            let particle = this.particles[ i ];
+            console.assert( particle.alive );
+
+            particle.updateM( dt );
+            particle.impulses = [];
+            particle.fs.set( 0, 0, 0 );
+
+            particle.calV();
+
+            particle.updateLifetime();
+            particle.updateOpacity();
+        }
+
+        return dt;
     }
 
     /**
@@ -117,6 +150,6 @@ export default class ParticleSystem {
      */
 
     getSpeed() {
-        return this.meanSpeed + Math.random() * this.maxSpeed;
+        return this.meanV + Math.random() * this.maxV;
     }
 }

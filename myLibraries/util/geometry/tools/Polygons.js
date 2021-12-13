@@ -14,7 +14,6 @@ import Lines from "./Lines.js";
 import Triangles from "./Triangles.js";
 import Face from "../DCEL/Face.js";
 import HalfEdge from "../DCEL/HalfEdge.js";
-import MonotonePolygons from "./MonotonePolygons.js";
 
 /**
  * This class consists exclusively of static methods
@@ -97,7 +96,10 @@ export default class Polygons {
     }
 
     /**
-     * is the point On This Polygon?
+     * is the point On This Polygon( represented as Face )?
+     *
+     * @param {Face} polygon
+     * @param {Vector} point
      * */
 
     static isOnThisPolygon( polygon, point ) {
@@ -111,6 +113,24 @@ export default class Polygons {
             console.assert( edge.incidentFace === polygon.outComponent.incidentFace );
             edge = edge.next;
         } while ( edge !== polygon.outComponent );
+
+        return true;
+    }
+
+    /**
+     * is the point On This Polygon( represented as vertices )?
+     *
+     * @param {[Vector]} vertices
+     * @param {Vector} point
+     * */
+
+    static isOnThisPolygonWithVertices( vertices, point ) {
+        if ( vertices == null || vertices.length < 3 ) return false;
+
+        for ( let i = 0; i < vertices.length - 1; i++ ) {
+            if ( !Triangles.toLeft( vertices[ i ], vertices[ i + 1 ], point ) )
+                return false;
+        }
 
         return true;
     }

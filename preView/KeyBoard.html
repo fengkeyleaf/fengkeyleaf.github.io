@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div id="key" style="height: 300px; width: 300px; border: 2px solid #00CCFF"></div>
+<script>
+    var key = document.getElementById("key");
+    key.onkeydown =f;  //注册keydown事件处理函数
+    key.onkeyup = f;  //注册keyup事件处理函数
+    key.onkeypress = f;  //注册keypress事件处理函数
+    function f (e) {
+        var s = e.type + " " + e.keyCode;  //获取键盘事件类型和按下的值
+        console.log( s );
+    }
+</script>
+</body>
+</html>

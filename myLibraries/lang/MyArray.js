@@ -34,6 +34,14 @@ Array.prototype.getFirst = function () {
     return this.isEmpty() ? null : this[ 0 ];
 }
 
+/**
+ * clear this array while keeping original reference
+ */
+
+Array.prototype.clear = function () {
+    return this.splice( 0 );
+}
+
 // ---------------------------------
 // Float32Array class
 // ---------------------------------

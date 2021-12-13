@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="http://www.yanhuangxueyuan.com/versions/threejsR92/build/three.js"></script>
+</head>
+<body>
+<script>
+    // var T = new THREE.Matrix4()
+    // // set方法设置平移矩阵
+    // T.set(
+    //     1, 0, 0, 5,
+    //     0, 1, 0, 3,
+    //     0, 0, 1, 9,
+    //     0, 0, 0, 1
+    // )
+    //
+    // var T1 = new THREE.Matrix4()
+    // // 顶点坐标沿着X、Y、Z轴分别平移5,3,9
+    // T1.makeTranslation( 5, 3, 9 )
+    //
+    // var T2 = new THREE.Matrix4()
+    // // 创建一个平移矩阵，顶点坐标沿着X、Y、Z轴分别平移5,3,9
+    // T2.makeTranslation( 5, 3, 9 )
+    // // 三维向量表示一个顶点坐标
+    // var v1 = new THREE.Vector3( 10, 10, 10 );
+    // // 向量进行矩阵变换
+    // var v2 = v1.clone().applyMatrix4( T2 );
+    // console.log( '查看平移后坐标', v2 );
+    //
+    // console.log( T );
+    // console.log( T1 );
+    // console.log( T2 );
+
+    // // 创建平移矩阵T1：x轴平移100
+    // var T1 = new THREE.Matrix4().makeTranslation( 100, 0, 0 )
+    // // 创建平移矩阵T2：y轴平移100
+    // var T2 = new THREE.Matrix4().makeTranslation( 0, 100, 0 )
+    //
+    // // 两个变换矩阵相乘表示顶点先后经过两次
+    // var M = new THREE.Matrix4()
+    // M.multiplyMatrices( T2, T1 )
+    // // 三维向量表示一个顶点坐标
+    // var v1 = new THREE.Vector3( 10, 10, 10 );
+    // // 向量进行矩阵变换
+    // var v2 = v1.clone().applyMatrix4( M );
+    // console.log( '查看平移后坐标', v2 );
+
+    // 一个网格模型对象，基类是Object3D
+    var mesh = new THREE.Mesh();
+    console.log( mesh.rotation );
+    console.log( mesh.position );
+    console.log( mesh.scale );
+
+    mesh.translateX( 100 );
+    mesh.translateY( 200 );
+    mesh.translateZ( 300 );
+    mesh.rotateZ( Math.PI );
+    mesh.scale.set( 400, 500, 600 );
+
+    console.log( '查看角度属性值的变化', mesh.rotation );
+    console.log( '查看位置属性的变化', mesh.position );
+    console.log( '查看本地矩阵属性matrix', mesh.scale );
+
+    // 位置、角度、缩放属性值更新到矩阵属性matrix
+    console.log( '查看本地矩阵属性matrix', mesh.matrix.elements );
+    // mesh.updateMatrix();
+    console.log( '查看本地矩阵属性matrix', mesh.matrix.elements );
+
+</script>
+</body>
+</html>

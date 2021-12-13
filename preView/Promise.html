@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<script>
+
+    // function greet() {
+    //     return new Promise( function ( resolve, reject ) {
+    //         var greet = "hello  world";
+    //         resolve( greet );
+    //     } );
+    // }
+    //
+    // greet().then( v => {
+    //     console.log( v );//*
+    // } );
+
+    // function greet() {
+    //     return new Promise( function ( resolve, reject ) {
+    //         var greet = "hello  world";
+    //         resolve( greet );
+    //     } );
+    // }
+    //
+    // var p = greet().then( v => {
+    //     console.log( v );
+    // } )
+    //
+    // console.log( p );
+
+    function greet() {
+        return new Promise( function ( resolve, reject ) {
+            console.log( " test " );
+            var greet = "hello  world";
+            resolve( greet );
+        } );
+    }
+
+    let pro = greet().then( v => {
+        console.log( v + 1 );
+        return v;
+    } );
+
+    pro = pro.then( v => {
+            console.log( v + 2 );
+            return v;
+        } );
+    pro.then( v => {
+            console.log( v + 3 );
+        } )
+
+    // function judgeNumber( num ) {
+    //     return new Promise( function ( resolve, reject ) {
+    //         num = 4;
+    //         if ( num < 5 ) {
+    //             resolve( "num小于5，值为：" + num );
+    //         } else {
+    //             reject( "num不小于5，值为：" + num );
+    //         }
+    //     } );
+    // }
+    //
+    // var res = judgeNumber().then(
+    //     function ( message ) {
+    //         console.log( message + "resolve" );
+    //     },
+    //     function ( message ) {
+    //         console.log( message + "reject" );
+    //     }
+    // )
+    //
+    // console.log( res );
+
+    // function judgeNumber( num ) {
+    //     return new Promise( function ( resolve, reject ) {
+    //         num = 5;
+    //         if ( num < 5 ) {
+    //             resolve( "num小于5，值为：" + num );
+    //         } else {
+    //             reject( "num不小于5，值为：" + num );
+    //         }
+    //     } );
+    // }
+    //
+    // judgeNumber().then(
+    //     function ( message ) {
+    //         console.log( message + "resolve" );
+    //     }
+    //     // ,
+    //     // function ( message ) {
+    //     //     console.log( message + "reject" );
+    //     // }
+    // )
+    //     .catch( function ( message ) {
+    //         console.log( message + "catch" );
+    //     } )
+
+    // function p1() {
+    //     return new Promise( function ( resolve, reject ) {
+    //         console.log( "p1的第一条输出语句" );
+    //         console.log( "p1的第二条输出语句" );
+    //         resolve( "p1完成" );
+    //     } );
+    // }
+
+    // function p2() {
+    //     return new Promise( function ( resolve, reject ) {
+    //         console.log( "p2的第一条输出语句" );
+    //         setTimeout( () => {
+    //             console.log( "p2的第二条输出语句" );
+    //             resolve( "p2完成" )
+    //         }, 2000 );
+    //
+    //     } );
+    // }
+    //
+    // function p3() {
+    //     return new Promise( function ( resolve, reject ) {
+    //         console.log( "p3的第一条输出语句" );
+    //         console.log( "p3的第二条输出语句" );
+    //         resolve( "p3完成" )
+    //     } );
+    // }
+    //
+    // // Promise.all( [ p1(), p2(), p3() ] ).then( function ( data ) {
+    // //     console.log( data );
+    // // } );
+    //
+    // Promise.race( [ p1(), p2(), p3() ] ).then( function ( data ) {
+    //     console.log( data );
+    // } );
+
+    // var i
+    //
+    // var promise = new Promise( function ( resolve, reject ) {
+    //     resolve( "hello" );
+    // } )
+    //
+    // promise.then( data => {
+    //     i = 2;
+    //
+    // } )
+    // console.log( i );
+</script>
+</body>
+</html>

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>使用WebGL绘制一个点</title>
+    <style>
+        canvas {
+            float: left;
+            width: 600px;
+            /*width: 1100px;*/
+            height: 600px;
+            /*height: 640px;*/
+            border: 1px solid grey;
+            /*background-color: deepskyblue;*/
+        }
+    </style>
+</head>
+<body>
+<!--canvas标签创建一个宽高均为500像素，背景为蓝色的矩形画布-->
+<canvas id="webgl" width="600px" height="600px" style="float: left; border: 1px solid grey"></canvas>
+<!--<canvas id="webgl" ></canvas>-->
+
+<!-- 顶点着色器源码 -->
+<script id="vertexShader" type="x-shader/x-vertex">
+    //attribute声明vec4类型变量apos
+    attribute vec4 aVertexPosition;
+    void main() {
+    // gl_PointSize=4.0;
+      //顶点坐标apos赋值给内置变量gl_Position
+      //逐顶点处理数据
+      gl_Position = aVertexPosition;
+    }
+</script>
+
+<!-- 片元着色器源码 -->
+<script id="fragmentShader" type="x-shader/x-fragment">
+  void main() {
+    gl_FragColor = vec4(1.0,0.0,0.0,1.0);
+  }
+</script>
+
+<script type="module">
+    // //通过getElementById()方法获取canvas画布
+    // var canvas = document.getElementById( 'webgl' );
+    // //通过方法getContext()获取WebGL上下文
+    // var gl = canvas.getContext( 'webgl' );
+    //
+    // //顶点着色器源码
+    // var vertexShaderSource = document.getElementById( 'vertexShader' ).innerText;
+    //
+    // //片元着色器源码
+    // var fragShaderSource = document.getElementById( 'fragmentShader' ).innerText;
+    //
+    // //初始化着色器
+    // var program = initShader( gl, vertexShaderSource, fragShaderSource );
+    //
+    // //获取顶点着色器的位置变量apos，即aposLocation指向apos变量。
+    // // var aposLocation = gl.getAttribLocation( program, 'positions' );
+    // program.aVertexPosition = gl.getAttribLocation( program, 'positions' );
+    //
+    // //类型数组构造函数Float32Array创建顶点数组
+    // // 矩形四个顶点坐标的数据
+    // var data = new Float32Array(
+    //     [ 0.5, 0.5,
+    //         -0.5, 0.5,
+    //         -0.5, -0.5,
+    //         0.5, -0.5 ] );
+    //
+    // //创建缓冲区对象
+    // var buffer = gl.createBuffer();
+    // //绑定缓冲区对象,激活buffer
+    // gl.bindBuffer( gl.ARRAY_BUFFER, buffer );
+    // //顶点数组data数据传入缓冲区
+    // gl.bufferData( gl.ARRAY_BUFFER, data, gl.STATIC_DRAW );
+    // //缓冲区中的数据按照一定的规律传递给位置变量apos
+    // gl.vertexAttribPointer( program.aVertexPosition, 2, gl.FLOAT, false, 0, 0 );
+    // //允许数据传递
+    // gl.enableVertexAttribArray( program.aVertexPosition );
+    // // gl.viewport( 0, 0, gl.canvas.width, gl.canvas.height );
+    //
+    // //开始绘制图形
+    // gl.drawArrays( gl.LINE_LOOP, 0, 4 );
+    //
+    // var data2 = new Float32Array(
+    //     [ 0.8, 0.8,
+    //         -0.8, 0.8 ] );
+    //
+    // buffer = gl.createBuffer();
+    // gl.bindBuffer( gl.ARRAY_BUFFER, buffer );
+    // //顶点数组data数据传入缓冲区
+    // gl.bufferData( gl.ARRAY_BUFFER, data2, gl.STATIC_DRAW );
+    // //缓冲区中的数据按照一定的规律传递给位置变量apos
+    // gl.vertexAttribPointer( program.aVertexPosition, 2, gl.FLOAT, false, 0, 0 );
+    // //允许数据传递
+    // gl.enableVertexAttribArray( program.aVertexPosition );
+    //
+    // gl.drawArrays( gl.LINE_LOOP, 0, 2 );
+    //
+    //
+    // //声明初始化着色器函数
+    // function initShader( gl, vertexShaderSource, fragmentShaderSource ) {
+    //     //创建顶点着色器对象
+    //     var vertexShader = gl.createShader( gl.VERTEX_SHADER );
+    //     //创建片元着色器对象
+    //     var fragmentShader = gl.createShader( gl.FRAGMENT_SHADER );
+    //     //引入顶点、片元着色器源代码
+    //     gl.shaderSource( vertexShader, vertexShaderSource );
+    //     gl.shaderSource( fragmentShader, fragmentShaderSource );
+    //     //编译顶点、片元着色器
+    //     gl.compileShader( vertexShader );
+    //     gl.compileShader( fragmentShader );
+    //
+    //     //创建程序对象program
+    //     var program = gl.createProgram();
+    //     //附着顶点着色器和片元着色器到program
+    //     gl.attachShader( program, vertexShader );
+    //     gl.attachShader( program, fragmentShader );
+    //     //链接program
+    //     gl.linkProgram( program );
+    //     //使用program
+    //     gl.useProgram( program );
+    //     //返回程序program对象
+    //     return program;
+    // }
+
+    // import Program from "../../myLibraries/GUI/Program.js";
+    //
+    // var data = new Float32Array(
+    //     [ 0.5, 0.5,
+    //         -0.5, 0.5,
+    //         -0.5, -0.5,
+    //         0.5, -0.5 ] );
+    //
+    // new Program({ webgl: "webgl", vertexShader: "vertexShader", fragmentShader: "fragmentShader" } ).draw( data );
+</script>
+
+<script type="module">
+    // visualized program
+    import Program from "../../myLibraries/GUI/Program.js";
+
+    // 矩形四个顶点坐标的数据
+    var data = new Float32Array(
+        [ 0.5, 0.5,
+            -0.5, 0.5,
+            -0.5, -0.5,
+            0.5, -0.5 ] );
+
+    var data2 = new Float32Array(
+            [ 0.8, 0.8,
+                -0.8, 0.8 ] );
+
+    let points = [ data, data2 ];
+
+    let drawer = new Program( {
+        webgl: "webgl",
+        vertexShader: "vertexShader",
+        fragmentShader: "fragmentShader",
+        aVertexPosition: "aVertexPosition"
+    } );
+
+    // drawer.draw( data );
+    // drawer.drawLines( data );
+    drawer.draw( [ data, data2 ] );
+    // drawer.drawLines( data2, data );
+</script>
+</body>
+</html>

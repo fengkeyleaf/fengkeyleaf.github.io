@@ -24,7 +24,7 @@ import Stack from "../../myLibraries/util/Stack.js";
 export default class Button {
 
     constructor() {
-        // buttons
+        // bottons
         this.getStarted = null;
         this.example = null;
 
@@ -37,7 +37,7 @@ export default class Button {
         this.buttonSkipTri = null;
 
         this.isUnable = false;
-        this.__addEvents();
+        this.#addEvents();
     }
 
     static enableUntil( waitTime ) {
@@ -46,7 +46,7 @@ export default class Button {
         }, waitTime );
     }
 
-    __addExampleEvent() {
+    #addExampleEvent() {
         this.example = document.getElementById( "examples" );
         this.example.onchange = function () {
             switch ( this.selectedIndex ) {
@@ -66,7 +66,7 @@ export default class Button {
         }
     }
 
-    __addMonoToneEvents() {
+    #addMonoToneEvents() {
         // related functions for mono
         function nextMono() {
             if ( Main.main.snapshotsNext.size() > 0 ) {
@@ -151,7 +151,7 @@ export default class Button {
         } );
     }
 
-    __addTriEvents() {
+    #addTriEvents() {
         // related functions for Tri
         function nextTri() {
             // set the status of tri snapshot stack properly
@@ -240,11 +240,13 @@ export default class Button {
         } );
     }
 
-    __addGetStartedEvents() {
+    #addGetStartedEvents() {
         this.getStarted = document.getElementById( "getStarted" );
         this.getStarted.onclick = init;
 
         function reset() {
+            if ( Main.main.buttons.isUnable ) return;
+
             let program = Main.main, buttons = program.buttons;
             buttons.getStarted.innerText = "Get Started";
             // allow to add points on the canvas
@@ -267,7 +269,7 @@ export default class Button {
             switch ( program.whichInput ) {
                 case Main.InputType.EXAMPLE:
                 case Main.InputType.FILE:
-                    if ( program.fileInput == null || Button.__isNotInputFromFile() ) {
+                    if ( program.fileInput == null || Button.isNotInputFromFile() ) {
                         alert( "No file imported!" );
                         return;
                     }
@@ -288,18 +290,19 @@ export default class Button {
                     Program.hideCanvasInstructions();
 
                     program.resetDrawingData();
+                    program.isCounterClockWiseInput();
                     program.doTheAlgorithm();
             }
         }
     }
 
-    static __isNotInputFromFile() {
+    static isNotInputFromFile() {
         let main = Main.main;
         return main.whichInput === Main.InputType.FILE &&
                 ( main.fileInput === Example.simpleExample || main.fileInput === Example.complexExample || main.fileInput === Example.mazeExample );
     }
 
-    __addHoverEvents() {
+    #addHoverEvents() {
         this.getStarted.onmouseover = function () {
             this.style.backgroundColor = "white";
             this.style.color = "#00CCFF";
@@ -339,12 +342,12 @@ export default class Button {
         this.buttonSkipTri.onmouseout = normalOut;
     }
 
-    __addEvents() {
-        this.__addMonoToneEvents();
-        this.__addTriEvents();
-        this.__addGetStartedEvents();
-        this.__addHoverEvents();
-        this.__addExampleEvent();
+    #addEvents() {
+        this.#addMonoToneEvents();
+        this.#addTriEvents();
+        this.#addGetStartedEvents();
+        this.#addHoverEvents();
+        this.#addExampleEvent();
     }
 
 }

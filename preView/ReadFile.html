@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<input type="file" id="fileInput">
+<script>
+    // https://dev.to/g33konaut/reading-local-files-with-javascript-25hn
+
+    // document.getElementById('fileInput').addEventListener('change', function selectedFileChanged() {
+    //     console.log(this.files); // will contain information about the file that was selected.
+    // });
+
+    document.getElementById( 'fileInput' ).addEventListener( 'change', function selectedFileChanged() {
+        if ( this.files.length === 0 ) {
+            console.log( 'No file selected.' );
+            return;
+        }
+
+        startProgram( new FileReader(), this.files[ 0 ] );
+        // const reader = new FileReader();
+        // reader.onload = function fileReadCompleted() {
+        //     // when the reader is done, the content is in reader.result.
+        //     console.log( reader.result );
+        // };
+        // reader.readAsText( this.files[ 0 ] );
+    } );
+
+    // callback function
+    // we have to load the image
+    // first and then set up the texture
+    function startProgram( reader, files ) {
+        // console.log(reader);
+        console.log( files );
+        reader.readAsText( files );
+        console.log( "test" );
+        reader.onload = function fileReadCompleted() {
+            console.log( "start" );
+            new Main( reader.result ).doTheAlgorithm();
+        };
+        // reader.onload = function fileReadCompleted() {
+        //     when the reader is done, the content is in reader.result.
+            // console.log( reader.result );
+        // };
+    }
+</script>
+</body>
+</html>
