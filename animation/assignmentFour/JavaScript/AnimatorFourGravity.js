@@ -77,7 +77,7 @@ export default class AnimatorFourGravity extends AnimatorOne {
             meanLifetime: this.meanLifetime,
             maxLifetime: this.maxLifetime,
             psi: this.psi,
-            isAppliedGravity: true
+            isAppliedGravity: false
         } );
         console.log( this.particleSystem );
         this.particleSystem.setup();

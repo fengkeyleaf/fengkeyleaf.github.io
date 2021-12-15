@@ -111,6 +111,7 @@ export default class Particle extends RigidSphere {
 
         // side angle of the cone is sideAngle degrees
         let cosPhi = Math.cos( MyMath.radians( sideAngle ) );
+        cosPhi = direction.z / direction.length();
         let z = MyMath.randomInRange( cosPhi, 1 );
 
         console.assert( MyMath.doubleCompare( 1 - z * z, 0 ) >= 0, 1 - z * z );

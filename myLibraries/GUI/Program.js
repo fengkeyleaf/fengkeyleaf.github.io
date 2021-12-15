@@ -205,7 +205,6 @@ export default class Program {
 
         Main.main.originalWidth = this.canvas.width / 2;
         Main.main.originalHeight = this.canvas.height / 2;
-        Main.main.initInfinitePoint();
 
         this.canvas.onclick = Program.canvasClickEvent;
         this.canvas.onmouseenter = Program.hideCanvasInstructions;

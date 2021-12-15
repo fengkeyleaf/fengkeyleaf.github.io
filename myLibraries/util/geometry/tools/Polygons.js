@@ -118,24 +118,6 @@ export default class Polygons {
     }
 
     /**
-     * is the point On This Polygon( represented as vertices )?
-     *
-     * @param {[Vector]} vertices
-     * @param {Vector} point
-     * */
-
-    static isOnThisPolygonWithVertices( vertices, point ) {
-        if ( vertices == null || vertices.length < 3 ) return false;
-
-        for ( let i = 0; i < vertices.length - 1; i++ ) {
-            if ( !Triangles.toLeft( vertices[ i ], vertices[ i + 1 ], point ) )
-                return false;
-        }
-
-        return true;
-    }
-
-    /**
      * get the DCEL for the polygon
      * representing by counter-clock-wise vertices
      *

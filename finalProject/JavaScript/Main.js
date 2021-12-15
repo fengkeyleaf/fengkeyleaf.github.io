@@ -33,6 +33,8 @@ import Pseudocode from "./Pseudocode.js";
  */
 
 // necessary
+// TODO: 12/15/2021 bug adding points on the same line, color changes
+// TODO: 12/15/2021 but with accepting counter-clock-wise or clock-wise order
 // TODO: 11/23/2021 multi-clicks
 // TODO: 11/25/2021 stop animation when reset
 
@@ -53,11 +55,6 @@ export default class Main {
         CANVAS: 1,
         EXAMPLE: 2
     }
-
-    // this point is always outside of the canvas,
-    // so use this to check to see
-    // if a user adds points in counter-clock wise
-    infinitePoint = null;
 
     constructor( fileInput = Example.simpleExample ) {
         Main.main = this;
@@ -135,18 +132,6 @@ export default class Main {
         setTimeout( function () {
             Main.main.isAnimating = false;
         }, waitTime );
-    }
-
-    initInfinitePoint() {
-        this.infinitePoint = new Vector( 2 * this.originalWidth, 2 * this.originalHeight );
-    }
-
-    isCounterClockWiseInput() {
-        console.log( this.infinitePoint, this.vertices );
-        if ( !Polygons.isOnThisPolygonWithVertices( this.vertices, this.infinitePoint ) ) {
-            this.vertices.reverse();
-            console.log( "reversed" );
-        }
     }
 
     static gotKey( event ) {

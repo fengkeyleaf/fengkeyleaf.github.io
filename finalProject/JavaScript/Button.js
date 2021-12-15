@@ -290,7 +290,6 @@ export default class Button {
                     Program.hideCanvasInstructions();
 
                     program.resetDrawingData();
-                    program.isCounterClockWiseInput();
                     program.doTheAlgorithm();
             }
         }
